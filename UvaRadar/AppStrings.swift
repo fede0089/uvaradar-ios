@@ -179,8 +179,10 @@ enum AppStrings {
         static var debtReferenceMonthlyLabel: String { localized("Mensual estimado", "Estimated monthly") }
         static var debtReferenceDateLabel: String { localized("Calculado al", "Calculated as of") }
         static var debtReferenceMethodNote: String { localized("Estimado con tu TNA y la variación reciente de la UVA.", "Estimated using your loan rate and recent UVA variation.") }
-        static var debtReferenceScenarioHigherYield: String { localized("Si una inversión neta supera esta tasa, adelantar pierde atractivo.", "If a net investment return beats this rate, prepaying becomes less attractive.") }
-        static var debtReferenceScenarioNoBetterOption: String { localized("Si no la supera, adelantar gana atractivo para bajar deuda.", "If it does not beat it, prepaying becomes more attractive to reduce debt.") }
+        static var debtReferenceScenarioHigherYield: String { localized("Si una billetera o plazo fijo neto supera esta tasa, adelantar pierde atractivo.", "If a wallet or term deposit net return beats this rate, prepaying becomes less attractive.") }
+        static var debtReferenceScenarioNoBetterOption: String { localized("Si no la supera, adelantar capital es la mejor opción para bajar deuda.", "If it does not beat it, prepaying principal is the best option to reduce debt.") }
+        static var debtReferenceCompareCaption: String { localized("Consultá tasas de billeteras y bancos para comparar:", "Check wallet and bank rates to compare:") }
+        static var debtReferenceCompareLinkLabel: String { localized("Ver tasas disponibles →", "See available rates →") }
         static var debtReferenceInsufficientData: String { localized("Todavía no hay datos suficientes para estimar esta referencia.", "There is not enough data yet to estimate this reference.") }
         static var paymentBreakdownTitle: String { localized("Desglose de la próxima cuota", "Next installment breakdown") }
         static var paymentBreakdownSubtitle: String { localized("Qué parte de la cuota amortiza capital y qué parte corresponde a interés.", "How much of the installment pays down principal and how much corresponds to interest.") }
@@ -254,12 +256,12 @@ enum AppStrings {
         static var reduceTerm: String { localized("Reducir plazo", "Reduce term") }
         static var reduceInstallment: String { localized("Reducir cuota", "Reduce installment") }
 
-        static func reduceTermPreview(months: Int) -> String {
-            localized("El plazo bajaría \(months) meses.", "The term would decrease by \(months) months.")
+        static func reduceTermPreview(savings: String, remaining: String) -> String {
+            localized("El plazo bajaría \(savings) (quedan \(remaining)).", "The term would decrease by \(savings) (\(remaining) remaining).")
         }
 
-        static func reduceInstallmentPreview(amount: String) -> String {
-            localized("La nueva cuota sería \(amount).", "The new installment would be \(amount).")
+        static func reduceInstallmentPreview(uva: String, ars: String, usd: String) -> String {
+            localized("La nueva cuota sería \(uva) (\(ars) / \(usd)).", "The new installment would be \(uva) (\(ars) / \(usd)).")
         }
     }
 

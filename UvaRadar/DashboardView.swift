@@ -161,7 +161,7 @@ struct DashboardView: View {
                         MetricItem(title: AppStrings.Dashboard.grantDate, value: UIDateSupport.displayDate(from: baseDate), symbol: nil, tint: .secondary, compact: true),
                         MetricItem(title: AppStrings.Dashboard.firstDueDate, value: UIDateSupport.displayDate(from: input.firstDueDate), symbol: nil, tint: .secondary, compact: true),
                         MetricItem(title: AppStrings.Dashboard.nominalAnnualRate, value: AppFormatting.number(input.tna * 100, decimals: 2) + "%", symbol: nil, tint: .secondary, compact: true),
-                        MetricItem(title: AppStrings.Dashboard.originalTerm, value: AppStrings.Common.months(input.totalMonths), symbol: nil, tint: .secondary, compact: true),
+                        MetricItem(title: AppStrings.Dashboard.originalTerm, value: formatRemainingTime(input.totalMonths), symbol: nil, tint: .secondary, compact: true),
                         MetricItem(title: AppStrings.Dashboard.originalAmount, value: AppFormatting.currency(initialAmount, currency: displayCurrency), symbol: nil, tint: .secondary, compact: true),
                         MetricItem(title: AppStrings.Dashboard.initialInstallment, value: AppFormatting.currency(initialInstallment, currency: displayCurrency), symbol: nil, tint: .secondary, compact: true)
                     ])
@@ -616,6 +616,22 @@ private struct DebtCostReferenceCard: View {
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(AppStrings.Dashboard.debtReferenceCompareCaption)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        Link(destination: URL(string: "https://comparatasas.ar")!) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.up.right.square")
+                                Text(AppStrings.Dashboard.debtReferenceCompareLinkLabel)
+                            }
+                            .font(.footnote.weight(.semibold))
+                        }
+                    }
 
                     Text(estimate.methodNote)
                         .font(.caption)
@@ -1113,10 +1129,21 @@ struct AdvanceEditorView: View {
         switch mode {
         case .reduceTerm:
             let savedMonths = max(0, computed.remainingMonths - recomputed.remainingMonths)
-            return AppStrings.AdvanceEditor.reduceTermPreview(months: savedMonths)
+            return AppStrings.AdvanceEditor.reduceTermPreview(
+                savings: formatRemainingTime(savedMonths),
+                remaining: formatRemainingTime(recomputed.remainingMonths)
+            )
         case .reduceInstallment:
-            let newInstallment = recomputed.principalInstallmentUVA + (input.insuranceIncluded ? input.insuranceUVA : 0)
-            return AppStrings.AdvanceEditor.reduceInstallmentPreview(amount: "\(AppFormatting.number(newInstallment, decimals: 2)) UVA")
+            let newInstallmentUVA = recomputed.principalInstallmentUVA + (input.insuranceIncluded ? input.insuranceUVA : 0)
+            let cutoffUVA = computed.cutoffUVA
+            let cutoffUSD = (try? LoanCalculator.valueAtOrPrevious(dateISO: computed.cutoffDate, series: series.usd)) ?? 1
+            let arsAmount = newInstallmentUVA * cutoffUVA
+            let usdAmount = cutoffUSD > 0 ? arsAmount / cutoffUSD : 0
+            return AppStrings.AdvanceEditor.reduceInstallmentPreview(
+                uva: "\(AppFormatting.number(newInstallmentUVA, decimals: 2)) UVA",
+                ars: AppFormatting.currency(arsAmount, currency: .ars),
+                usd: AppFormatting.currency(usdAmount, currency: .usd)
+            )
         }
     }
 
