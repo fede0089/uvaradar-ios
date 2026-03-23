@@ -44,3 +44,37 @@ struct JSONCasePersistence: CasePersistence {
         try FileManager.default.removeItem(at: fileURL)
     }
 }
+
+struct iCloudKVCasePersistence: CasePersistence {
+    private let store = NSUbiquitousKeyValueStore.default
+    private let key = "case-state-v1"
+    private let fallback = JSONCasePersistence()
+
+    func load() throws -> PersistedCasePayload? {
+        if let data = store.data(forKey: key) {
+            return try JSONDecoder().decode(PersistedCasePayload.self, from: data)
+        }
+        // Migrar datos locales existentes a iCloud en el primer launch
+        if let local = try fallback.load() {
+            try save(input: local.input, events: local.events)
+            return local
+        }
+        return nil
+    }
+
+    func save(input: CaseInput?, events: [CapitalAdvanceEvent]) throws {
+        let payload = PersistedCasePayload(version: 1, input: input, events: events)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(payload)
+        store.set(data, forKey: key)
+        store.synchronize()
+        try? fallback.save(input: input, events: events)
+    }
+
+    func clear() throws {
+        store.removeObject(forKey: key)
+        store.synchronize()
+        try fallback.clear()
+    }
+}
