@@ -196,6 +196,9 @@ struct DashboardView: View {
                     Spacer()
 
                     Button {
+                        AppAnalytics.shared.track(.advanceEditorOpened, properties: [
+                            "existing_advance_count": model.events.count
+                        ])
                         showingAdvanceSheet = true
                     } label: {
                         Label(AppStrings.Common.add, systemImage: "plus")
@@ -720,6 +723,7 @@ struct PaymentHistoryView: View {
 
     @State private var currency: LoanCurrency
     @State private var expandedYears: Set<Int>
+    @State private var didTrackOpen = false
 
     init(computed: CaseComputed, initialCurrency: LoanCurrency) {
         self.computed = computed
@@ -781,6 +785,14 @@ struct PaymentHistoryView: View {
         )
         .navigationTitle(UvaTerminology.installmentHistory)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            guard !didTrackOpen else { return }
+            didTrackOpen = true
+            AppAnalytics.shared.track(.paymentHistoryOpened, properties: [
+                "installment_count": computed.history.count,
+                "initial_currency": currency.rawValue
+            ])
+        }
     }
 
     private var historyOverviewCard: some View {
@@ -1153,6 +1165,7 @@ struct AdvanceEditorView: View {
 
         guard numericAmount > 0 else {
             errorMessage = AppStrings.AdvanceEditor.invalidAmount
+            AppAnalytics.shared.track(.advanceValidationFailed, properties: ["field": "amount"])
             return
         }
 

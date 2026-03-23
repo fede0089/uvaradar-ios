@@ -286,18 +286,22 @@ struct LoanEditorView: View {
 
         guard months >= 1, months <= 600 else {
             validationMessage = AppStrings.LoanEditor.invalidTerm
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "total_months"])
             return
         }
         guard tna >= 0, tna <= 1 else {
             validationMessage = AppStrings.LoanEditor.invalidRate
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "tna"])
             return
         }
         guard amount > 0 else {
             validationMessage = AppStrings.LoanEditor.invalidAmount
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "original_amount"])
             return
         }
         if insuranceIncluded, insuranceAmount <= 0 {
             validationMessage = AppStrings.LoanEditor.invalidInsurance
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "insurance_uva"])
             return
         }
 

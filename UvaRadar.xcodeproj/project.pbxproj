@@ -6,9 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3D1EEDA82F718FBE00B5DA42 /* AmplitudeUnified in Frameworks */ = {isa = PBXBuildFile; productRef = 3D1EEDA72F718FBE00B5DA42 /* AmplitudeUnified */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3D1EED1E2F6F516800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D1EED472F717C2800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
+		3D1EED922F7187F400B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D7E14112F67507800A89074 /* UvaRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UvaRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D7E141F2F67507C00A89074 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -26,6 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D1EEDA82F718FBE00B5DA42 /* AmplitudeUnified in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,6 +44,11 @@
 			sourceTree = "<group>";
 		};
 		3D1EED4A2F717C2800B5DA42 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3D1EED952F7187F400B5DA42 /* Products */ = {
 			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +94,7 @@
 			);
 			name = UvaRadar;
 			packageProductDependencies = (
+				3D1EEDA72F718FBE00B5DA42 /* AmplitudeUnified */,
 			);
 			productName = UvaRadar;
 			productReference = 3D7E14112F67507800A89074 /* UvaRadar.app */;
@@ -112,6 +124,9 @@
 			);
 			mainGroup = 3D7E14082F67507800A89074;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3D1EEDA62F718FBE00B5DA42 /* XCRemoteSwiftPackageReference "AmplitudeUnified-Swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3D7E14122F67507800A89074 /* Products */;
 			projectDirPath = "";
@@ -119,6 +134,10 @@
 				{
 					ProductGroup = 3D7E14202F67507C00A89074 /* Products */;
 					ProjectRef = 3D7E141F2F67507C00A89074 /* UvaRadar.xcodeproj */;
+				},
+				{
+					ProductGroup = 3D1EED952F7187F400B5DA42 /* Products */;
+					ProjectRef = 3D1EED922F7187F400B5DA42 /* UvaRadar.xcodeproj */;
 				},
 				{
 					ProductGroup = 3D1EED202F6F516800B5DA42 /* Products */;
@@ -378,6 +397,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3D1EEDA62F718FBE00B5DA42 /* XCRemoteSwiftPackageReference "AmplitudeUnified-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amplitude/AmplitudeUnified-Swift";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3D1EEDA72F718FBE00B5DA42 /* AmplitudeUnified */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3D1EEDA62F718FBE00B5DA42 /* XCRemoteSwiftPackageReference "AmplitudeUnified-Swift" */;
+			productName = AmplitudeUnified;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3D7E14092F67507800A89074 /* Project object */;
 }

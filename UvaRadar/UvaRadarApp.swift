@@ -14,7 +14,13 @@ struct UvaRadarApp: App {
     init() {
         let seriesRepository = LiveSeriesRepository(config: .default)
         let casePersistence = iCloudKVCasePersistence()
-        _model = State(initialValue: AppModel(seriesRepository: seriesRepository, casePersistence: casePersistence))
+        _model = State(
+            initialValue: AppModel(
+                seriesRepository: seriesRepository,
+                casePersistence: casePersistence,
+                analytics: AppAnalytics.shared
+            )
+        )
     }
 
     var body: some Scene {
