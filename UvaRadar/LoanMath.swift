@@ -166,7 +166,8 @@ enum LoanCalculator {
         var currentBalance = principalUVA
         var remainingMonths = totalMonths
 
-        for installmentNumber in 1...paidCount {
+        for installmentIndex in 0..<paidCount {
+            let installmentNumber = installmentIndex + 1
             let currentEvents = eventsWithEffectiveIndex.filter { $0.effectiveInstallment == installmentNumber }
             if !currentEvents.isEmpty {
                 let result = applyEvents(

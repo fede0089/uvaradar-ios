@@ -10,18 +10,35 @@
 		3D1EEDA82F718FBE00B5DA42 /* AmplitudeUnified in Frameworks */ = {isa = PBXBuildFile; productRef = 3D1EEDA72F718FBE00B5DA42 /* AmplitudeUnified */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A1B2C3D42F70000100000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3D7E14092F67507800A89074 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3D7E14102F67507800A89074;
+			remoteInfo = UvaRadar;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		3D1EED1E2F6F516800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D1EED472F717C2800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D1EED922F7187F400B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
+		3D1EEDE82F72F9E100B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D7E14112F67507800A89074 /* UvaRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UvaRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D7E141F2F67507C00A89074 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
+		A1B2C3D42F70000100000001 /* UvaRadarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UvaRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3D7E14132F67507800A89074 /* UvaRadar */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = UvaRadar;
+			sourceTree = "<group>";
+		};
+		A1B2C3D42F70000100000002 /* UvaRadarTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = UvaRadarTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +49,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D1EEDA82F718FBE00B5DA42 /* AmplitudeUnified in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D42F70000100000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,10 +77,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		3D1EEDEB2F72F9E100B5DA42 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		3D7E14082F67507800A89074 = {
 			isa = PBXGroup;
 			children = (
 				3D7E14132F67507800A89074 /* UvaRadar */,
+				A1B2C3D42F70000100000002 /* UvaRadarTests */,
 				3D7E14122F67507800A89074 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				3D7E14112F67507800A89074 /* UvaRadar.app */,
+				A1B2C3D42F70000100000001 /* UvaRadarTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,6 +131,29 @@
 			productReference = 3D7E14112F67507800A89074 /* UvaRadar.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A1B2C3D42F70000100000006 /* UvaRadarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D42F7000010000000B /* Build configuration list for PBXNativeTarget "UvaRadarTests" */;
+			buildPhases = (
+				A1B2C3D42F70000100000005 /* Sources */,
+				A1B2C3D42F70000100000003 /* Frameworks */,
+				A1B2C3D42F70000100000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1B2C3D42F70000100000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A1B2C3D42F70000100000002 /* UvaRadarTests */,
+			);
+			name = UvaRadarTests;
+			packageProductDependencies = (
+			);
+			productName = UvaRadarTests;
+			productReference = A1B2C3D42F70000100000001 /* UvaRadarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -112,6 +166,10 @@
 				TargetAttributes = {
 					3D7E14102F67507800A89074 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					A1B2C3D42F70000100000006 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 3D7E14102F67507800A89074;
 					};
 				};
 			};
@@ -144,6 +202,10 @@
 					ProjectRef = 3D1EED1E2F6F516800B5DA42 /* UvaRadar.xcodeproj */;
 				},
 				{
+					ProductGroup = 3D1EEDEB2F72F9E100B5DA42 /* Products */;
+					ProjectRef = 3D1EEDE82F72F9E100B5DA42 /* UvaRadar.xcodeproj */;
+				},
+				{
 					ProductGroup = 3D1EED4A2F717C2800B5DA42 /* Products */;
 					ProjectRef = 3D1EED472F717C2800B5DA42 /* UvaRadar.xcodeproj */;
 				},
@@ -151,12 +213,20 @@
 			projectRoot = "";
 			targets = (
 				3D7E14102F67507800A89074 /* UvaRadar */,
+				A1B2C3D42F70000100000006 /* UvaRadarTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		3D7E140F2F67507800A89074 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D42F70000100000004 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -173,7 +243,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1B2C3D42F70000100000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1B2C3D42F70000100000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3D7E14102F67507800A89074 /* UvaRadar */;
+			targetProxy = A1B2C3D42F70000100000007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		3D7E141A2F67507900A89074 /* Debug */ = {
@@ -375,6 +460,68 @@
 			};
 			name = Release;
 		};
+		A1B2C3D42F70000100000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AX8V6FQPAA;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.solveit.UvaRadarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UvaRadar.app/UvaRadar";
+				TEST_TARGET_NAME = UvaRadar;
+			};
+			name = Debug;
+		};
+		A1B2C3D42F7000010000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AX8V6FQPAA;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.solveit.UvaRadarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UvaRadar.app/UvaRadar";
+				TEST_TARGET_NAME = UvaRadar;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -392,6 +539,15 @@
 			buildConfigurations = (
 				3D7E141D2F67507900A89074 /* Debug */,
 				3D7E141E2F67507900A89074 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D42F7000010000000B /* Build configuration list for PBXNativeTarget "UvaRadarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D42F70000100000009 /* Debug */,
+				A1B2C3D42F7000010000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
