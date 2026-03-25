@@ -173,11 +173,10 @@ enum AppStrings {
         static var initialInstallment: String { localized("Cuota inicial", "Initial installment") }
         static var advancesEmpty: String { localized("Sin adelantos cargados", "No prepayments added") }
         static var advancesDefaultSubtitle: String { localized("Pagos extraordinarios para bajar cuota o plazo.", "Extra payments to reduce the installment or shorten the term.") }
-        static var debtReferenceTitle: String { localized("Referencia para decidir", "Decision reference") }
+        static var debtReferenceTitle: String { localized("¿Conviene adelantar?", "Should you prepay?") }
         static var debtReferencePrimaryLabel: String { localized("Costo anual estimado de tu deuda", "Estimated annual cost of your debt") }
         static var debtReferencePrimaryCaption: String { localized("Referencia anual para comparar con una TNA", "Annual reference to compare against a nominal annual rate") }
         static var debtReferenceMonthlyLabel: String { localized("Mensual estimado", "Estimated monthly") }
-        static var debtReferenceDateLabel: String { localized("Calculado al", "Calculated as of") }
         static var debtReferenceMethodNote: String { localized("Estimado con tu TNA y la variación reciente de la UVA.", "Estimated using your loan rate and recent UVA variation.") }
         static var debtReferenceScenarioHigherYield: String { localized("Si una billetera o plazo fijo neto supera esta tasa, adelantar pierde atractivo.", "If a wallet or term deposit net return beats this rate, prepaying becomes less attractive.") }
         static var debtReferenceScenarioNoBetterOption: String { localized("Si no la supera, adelantar capital es la mejor opción para bajar deuda.", "If it does not beat it, prepaying principal is the best option to reduce debt.") }

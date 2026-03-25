@@ -60,12 +60,12 @@ struct DashboardView: View {
 
                 StatusMetricsGrid(items: [
                     StatusMetric(
-                        title: UvaTerminology.capitalPending,
-                        value: AppFormatting.currency(snapshot.pendingBalance, currency: displayCurrency)
-                    ),
-                    StatusMetric(
                         title: UvaTerminology.nextInstallment,
                         value: AppFormatting.currency(snapshot.nextInstallment, currency: displayCurrency)
+                    ),
+                    StatusMetric(
+                        title: UvaTerminology.capitalPending,
+                        value: AppFormatting.currency(snapshot.pendingBalance, currency: displayCurrency)
                     ),
                     StatusMetric(
                         title: AppStrings.Terminology.nextDueDate,
@@ -76,6 +76,10 @@ struct DashboardView: View {
                         value: formatRemainingTime(computed.remainingMonths)
                     )
                 ])
+
+                if let debtCostEstimate = model.debtCostEstimate {
+                    DebtCostReferenceCard(estimate: debtCostEstimate)
+                }
 
                 PaymentBreakdownSummary(
                     slices: installmentCompositionSlices(
@@ -205,10 +209,6 @@ struct DashboardView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                }
-
-                if let debtCostEstimate = model.debtCostEstimate {
-                    DebtCostReferenceCard(estimate: debtCostEstimate)
                 }
 
                 if model.events.isEmpty {
@@ -597,17 +597,6 @@ private struct DebtCostReferenceCard: View {
                                 .foregroundStyle(.secondary)
 
                             Text(AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1))
-                                .font(.subheadline.weight(.semibold))
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text(AppStrings.Dashboard.debtReferenceDateLabel)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-
-                            Text(UIDateSupport.displayDate(from: estimate.anchorDate))
                                 .font(.subheadline.weight(.semibold))
                         }
                     }
