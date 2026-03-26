@@ -174,9 +174,16 @@ enum AppStrings {
         static var advancesEmpty: String { localized("Sin adelantos cargados", "No prepayments added") }
         static var advancesDefaultSubtitle: String { localized("Pagos extraordinarios para bajar cuota o plazo.", "Extra payments to reduce the installment or shorten the term.") }
         static var debtReferenceTitle: String { localized("¿Conviene adelantar?", "Should you prepay?") }
+        static var debtReferenceHeroTitle: String { localized("Invertir o adelantar", "Invest or prepay") }
+        static var debtReferenceHeroSubtitle: String { localized("La comparación más útil para decidir qué hacer con tu próximo ahorro.", "The most useful comparison to decide what to do with your next savings.") }
         static var debtReferencePrimaryLabel: String { localized("Costo anual estimado de tu deuda", "Estimated annual cost of your debt") }
         static var debtReferencePrimaryCaption: String { localized("Referencia anual para comparar con una TNA", "Annual reference to compare against a nominal annual rate") }
         static var debtReferenceMonthlyLabel: String { localized("Mensual estimado", "Estimated monthly") }
+        static var debtReferenceThresholdLabel: String { localized("Tasa neta a superar", "Net rate to beat") }
+        static var debtReferenceThresholdCaption: String { localized("Si una alternativa neta rinde más que esto, adelantar pierde atractivo.", "If a net alternative yields more than this, prepaying becomes less attractive.") }
+        static var debtReferenceInvestingUpside: String { localized("Por arriba de esta tasa neta, invertir puede convenir más.", "Above this net rate, investing may be more attractive.") }
+        static var debtReferencePrepayingUpside: String { localized("Por debajo de esta tasa neta, adelantar capital suele convenir más.", "Below this net rate, prepaying principal is usually more attractive.") }
+        static var debtReferenceCalculatedLabel: String { localized("Calculado al cierre", "Calculated at close") }
         static var debtReferenceMethodNote: String { localized("Estimado con tu TNA y la variación reciente de la UVA.", "Estimated using your loan rate and recent UVA variation.") }
         static var debtReferenceScenarioHigherYield: String { localized("Si una billetera o plazo fijo neto supera esta tasa, adelantar pierde atractivo.", "If a wallet or term deposit net return beats this rate, prepaying becomes less attractive.") }
         static var debtReferenceScenarioNoBetterOption: String { localized("Si no la supera, adelantar capital es la mejor opción para bajar deuda.", "If it does not beat it, prepaying principal is the best option to reduce debt.") }

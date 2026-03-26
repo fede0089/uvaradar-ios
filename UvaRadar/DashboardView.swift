@@ -58,10 +58,15 @@ struct DashboardView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if let debtCostEstimate = model.debtCostEstimate {
+                    DebtCostReferenceCard(estimate: debtCostEstimate)
+                }
+
                 StatusMetricsGrid(items: [
                     StatusMetric(
                         title: UvaTerminology.nextInstallment,
-                        value: AppFormatting.currency(snapshot.nextInstallment, currency: displayCurrency)
+                        value: AppFormatting.currency(snapshot.nextInstallment, currency: displayCurrency),
+                        isHighlighted: true
                     ),
                     StatusMetric(
                         title: UvaTerminology.capitalPending,
@@ -76,10 +81,6 @@ struct DashboardView: View {
                         value: formatRemainingTime(computed.remainingMonths)
                     )
                 ])
-
-                if let debtCostEstimate = model.debtCostEstimate {
-                    DebtCostReferenceCard(estimate: debtCostEstimate)
-                }
 
                 PaymentBreakdownSummary(
                     slices: installmentCompositionSlices(
@@ -412,11 +413,13 @@ private struct StatusMetric: Identifiable {
     let title: String
     let value: String
     let subtitle: String?
+    let isHighlighted: Bool
 
-    init(title: String, value: String, subtitle: String? = nil) {
+    init(title: String, value: String, subtitle: String? = nil, isHighlighted: Bool = false) {
         self.title = title
         self.value = value
         self.subtitle = subtitle
+        self.isHighlighted = isHighlighted
     }
 }
 
@@ -434,10 +437,10 @@ private struct StatusMetricsGrid: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(item.title)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(item.isHighlighted ? .primary : .secondary)
 
                     Text(item.value)
-                        .font(.headline)
+                        .font(item.isHighlighted ? .title3.weight(.semibold) : .headline)
                         .minimumScaleFactor(0.82)
                         .lineLimit(2)
 
@@ -450,9 +453,17 @@ private struct StatusMetricsGrid: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
-                .background(Color(uiColor: .secondarySystemBackground), in: .rect(cornerRadius: 18))
+                .background(metricBackground(for: item), in: .rect(cornerRadius: 18))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(item.isHighlighted ? Color.accentColor.opacity(0.16) : Color.clear, lineWidth: 1)
+                }
             }
         }
+    }
+
+    private func metricBackground(for item: StatusMetric) -> Color {
+        item.isHighlighted ? Color.accentColor.opacity(0.10) : Color(uiColor: .secondarySystemBackground)
     }
 }
 
@@ -570,44 +581,68 @@ private struct DebtCostReferenceCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(AppStrings.Dashboard.debtReferenceTitle)
-                .font(.subheadline.weight(.semibold))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(AppStrings.Dashboard.debtReferenceHeroTitle)
+                    .font(.headline)
+                Text(AppStrings.Dashboard.debtReferenceHeroSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
 
             switch estimate.status {
             case .ok:
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(AppStrings.Dashboard.debtReferencePrimaryLabel)
+                        Text(AppStrings.Dashboard.debtReferenceThresholdLabel)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
 
                         Text(AppFormatting.percent(estimate.annualDebtCostEquivalent, decimals: 1))
                             .font(.title2.weight(.bold))
-                            .accessibilityLabel(AppStrings.Dashboard.debtReferencePrimaryLabel)
+                            .accessibilityLabel(AppStrings.Dashboard.debtReferenceThresholdLabel)
 
-                        Text(AppStrings.Dashboard.debtReferencePrimaryCaption)
+                        Text(AppStrings.Dashboard.debtReferenceThresholdCaption)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(AppStrings.Dashboard.debtReferenceMonthlyLabel)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-
-                            Text(AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1))
-                                .font(.subheadline.weight(.semibold))
-                        }
-                    }
-                    .padding(.vertical, 2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(Color.accentColor.opacity(0.10), in: .rect(cornerRadius: 16))
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(AppStrings.Dashboard.debtReferenceScenarioHigherYield)
-                        Text(AppStrings.Dashboard.debtReferenceScenarioNoBetterOption)
+                        decisionRow(
+                            symbol: "chart.line.uptrend.xyaxis",
+                            text: AppStrings.Dashboard.debtReferenceInvestingUpside
+                        )
+                        decisionRow(
+                            symbol: "arrow.down.left.circle",
+                            text: AppStrings.Dashboard.debtReferencePrepayingUpside
+                        )
                     }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+
+                    ViewThatFits {
+                        HStack(spacing: 10) {
+                            referencePill(
+                                title: AppStrings.Dashboard.debtReferenceMonthlyLabel,
+                                value: AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1)
+                            )
+                            referencePill(
+                                title: AppStrings.Dashboard.debtReferenceCalculatedLabel,
+                                value: UIDateSupport.displayDate(from: estimate.anchorDate)
+                            )
+                        }
+
+                        VStack(spacing: 10) {
+                            referencePill(
+                                title: AppStrings.Dashboard.debtReferenceMonthlyLabel,
+                                value: AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1)
+                            )
+                            referencePill(
+                                title: AppStrings.Dashboard.debtReferenceCalculatedLabel,
+                                value: UIDateSupport.displayDate(from: estimate.anchorDate)
+                            )
+                        }
+                    }
 
                     Divider()
 
@@ -642,6 +677,38 @@ private struct DebtCostReferenceCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.primary.opacity(0.04), lineWidth: 1)
         )
+    }
+
+    private func decisionRow(symbol: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 16, height: 16)
+
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func referencePill(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color(uiColor: .systemBackground).opacity(0.6), in: .rect(cornerRadius: 14))
     }
 }
 

@@ -21,12 +21,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3D1EED1E2F6F516800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
-		3D1EED472F717C2800B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
-		3D1EED922F7187F400B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
-		3D1EEDE82F72F9E100B5DA42 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		3D7E14112F67507800A89074 /* UvaRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UvaRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3D7E141F2F67507C00A89074 /* UvaRadar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = UvaRadar.xcodeproj; sourceTree = "<group>"; };
 		A1B2C3D42F70000100000001 /* UvaRadarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UvaRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -62,26 +57,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3D1EED202F6F516800B5DA42 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
-		3D1EED4A2F717C2800B5DA42 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
-		3D1EED952F7187F400B5DA42 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
-		3D1EEDEB2F72F9E100B5DA42 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
 		3D7E14082F67507800A89074 = {
 			isa = PBXGroup;
 			children = (
@@ -97,11 +72,6 @@
 				3D7E14112F67507800A89074 /* UvaRadar.app */,
 				A1B2C3D42F70000100000001 /* UvaRadarTests.xctest */,
 			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		3D7E14202F67507C00A89074 /* Products */ = {
-			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -181,35 +151,12 @@
 				Base,
 			);
 			mainGroup = 3D7E14082F67507800A89074;
-			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3D1EEDA62F718FBE00B5DA42 /* XCRemoteSwiftPackageReference "AmplitudeUnified-Swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3D7E14122F67507800A89074 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 3D7E14202F67507C00A89074 /* Products */;
-					ProjectRef = 3D7E141F2F67507C00A89074 /* UvaRadar.xcodeproj */;
-				},
-				{
-					ProductGroup = 3D1EED952F7187F400B5DA42 /* Products */;
-					ProjectRef = 3D1EED922F7187F400B5DA42 /* UvaRadar.xcodeproj */;
-				},
-				{
-					ProductGroup = 3D1EED202F6F516800B5DA42 /* Products */;
-					ProjectRef = 3D1EED1E2F6F516800B5DA42 /* UvaRadar.xcodeproj */;
-				},
-				{
-					ProductGroup = 3D1EEDEB2F72F9E100B5DA42 /* Products */;
-					ProjectRef = 3D1EEDE82F72F9E100B5DA42 /* UvaRadar.xcodeproj */;
-				},
-				{
-					ProductGroup = 3D1EED4A2F717C2800B5DA42 /* Products */;
-					ProjectRef = 3D1EED472F717C2800B5DA42 /* UvaRadar.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				3D7E14102F67507800A89074 /* UvaRadar */,
