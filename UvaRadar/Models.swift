@@ -54,6 +54,7 @@ enum AdvancePenaltyWindowUnit: String, Codable, CaseIterable, Identifiable {
     case installments = "INSTALLMENTS"
     case months = "MONTHS"
     case years = "YEARS"
+    case lifetime = "LIFETIME"
 
     var id: String { rawValue }
 
@@ -62,6 +63,7 @@ enum AdvancePenaltyWindowUnit: String, Codable, CaseIterable, Identifiable {
         case .installments: return AppStrings.LoanEditor.penaltyWindowInstallments
         case .months: return AppStrings.LoanEditor.penaltyWindowMonths
         case .years: return AppStrings.LoanEditor.penaltyWindowYears
+        case .lifetime: return AppStrings.LoanEditor.penaltyWindowLifetime
         }
     }
 }

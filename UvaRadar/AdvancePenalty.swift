@@ -151,6 +151,8 @@ enum AdvancePenaltyEvaluator {
             return compareAgainstBoundary(eventDateISO: eventDateISO, input: input, monthsOffset: rule.windowValue)
         case .years:
             return compareAgainstBoundary(eventDateISO: eventDateISO, input: input, monthsOffset: rule.windowValue * 12)
+        case .lifetime:
+            return true
         }
     }
 
@@ -174,6 +176,8 @@ enum AdvancePenaltyEvaluator {
             return AppStrings.LoanEditor.penaltyWindowMonthsValue(value)
         case .years:
             return AppStrings.LoanEditor.penaltyWindowYearsValue(value)
+        case .lifetime:
+            return AppStrings.LoanEditor.penaltyWindowLifetimeValue
         }
     }
 
@@ -196,6 +200,9 @@ enum AdvancePenaltyEvaluator {
 
         case .years:
             return limitTextFromBoundary(monthsOffset: rule.windowValue * 12, input: input)
+
+        case .lifetime:
+            return AppStrings.AdvanceEditor.penaltyAppliesForever
         }
     }
 

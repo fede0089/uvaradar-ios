@@ -184,7 +184,7 @@ enum AppStrings {
         static var convenienceSimulationTitle: String { localized("Simulá con tu ahorro", "Simulate with your savings") }
         static var convenienceSimulationSubtitle: String { localized("Ingresá caja disponible, tasa nominal neta y horizonte para cuantificar la diferencia.", "Enter available cash, net nominal rate, and horizon to quantify the difference.") }
         static var convenienceAmountLabel: String { localized("Monto disponible hoy", "Amount available today") }
-        static var convenienceAmountCaption: String { localized("Se interpreta como caja total. Si hay penalidad, sale de este mismo monto.", "This is treated as total cash available. If a penalty applies, it comes out of this same amount.") }
+        static var convenienceAmountCaption: String { localized("Se interpreta como caja total. Si hay comisión por precancelación, sale de este mismo monto.", "This is treated as total cash available. If a prepayment commission applies, it comes out of this same amount.") }
         static var convenienceInvestmentRateLabel: String { localized("Tasa nominal anual neta", "Net nominal annual rate") }
         static var convenienceInvestmentRateCaption: String { localized("Ingresala neta de impuestos, comisiones y costos relevantes.", "Enter it net of taxes, fees, and relevant costs.") }
         static var convenienceHorizonLabel: String { localized("Horizonte", "Horizon") }
@@ -209,12 +209,12 @@ enum AppStrings {
         static var latestAdvanceSingle: String { localized("1 adelanto de capital cargado", "1 principal prepayment added") }
         static var capitalAmortizedDisplay: String { localized("Capital amortizado", "Principal amortized") }
         static var capitalCompactDisplay: String { localized("Capital", "Principal") }
-        static var conveniencePenaltyTitle: String { localized("La penalidad reduce el capital efectivo", "Penalty reduces the effective principal") }
+        static var conveniencePenaltyTitle: String { localized("La comisión reduce el capital efectivo", "The commission reduces the effective principal") }
 
         static func conveniencePenaltyInputHint(rate: String, limit: String) -> String {
             localized(
-                "Penalidad activa: \(rate) (\(limit)). Se descuenta del capital que baja deuda.",
-                "Active penalty: \(rate) (\(limit)). Deducted from the principal that reduces debt."
+                "Comisión activa: \(rate) (\(limit)). Se descuenta del capital que baja deuda.",
+                "Active commission: \(rate) (\(limit)). Deducted from the principal that reduces debt."
             )
         }
 
@@ -339,17 +339,17 @@ enum AppStrings {
             )
         }
 
-        static func convenienceSheetCostInsight(total: String, threshold: String) -> String {
+        static func convenienceSheetCostInsight(total: String) -> String {
             localized(
-                "Anualizado, eso equivale al \(threshold) TNA. Para que valga la pena invertir en lugar de adelantar, necesitás que ese capital genere más de ~\(total)/mes. Si lo superás, cubrís el costo de la deuda y te queda ganancia.",
-                "Annualized, that's equivalent to \(threshold) TNA. For investing to beat prepaying, you need that capital to generate more than ~\(total)/month. If it does, you cover the cost of the debt and profit."
+                "Para que valga la pena invertir en lugar de adelantar, necesitás que ese capital genere más de ~\(total)/mes. Si lo superás, cubrís el costo de la deuda y te queda ganancia.",
+                "For investing to beat prepaying, you need that capital to generate more than ~\(total)/month. If it does, you cover the cost of the debt and profit."
             )
         }
 
         static func convenienceSheetWhereFromFormula(monthly: String, threshold: String) -> String {
             localized(
-                "~\(monthly)/mes × 12 = \(threshold) TNA",
-                "~\(monthly)/month × 12 = \(threshold) TNA"
+                "~$\(monthly)/mes × 12 ÷ $1.000.000 = \(threshold) TNA",
+                "~$\(monthly)/month × 12 ÷ $1,000,000 = \(threshold) TNA"
             )
         }
 
@@ -476,8 +476,30 @@ enum AppStrings {
             localized("Si adelantás hoy, tu banco cobraría \(rate) sobre el monto usado para adelantar (vigente \(limit)). La simulación descuenta esa comisión del capital que realmente baja deuda.", "If you prepay today, your bank would charge \(rate) on the amount used to prepay (in force \(limit)). The simulation subtracts that fee from the principal that actually reduces debt.")
         }
 
+        static func convenienceSheetAdjustedNote(original: String, rate: String) -> String {
+            localized(
+                "Ajustado por la comisión de tu banco (\(rate)). Sin comisión sería \(original).",
+                "Adjusted for your bank's commission (\(rate)). Without it, this would be \(original)."
+            )
+        }
+
+        static func convenienceSheetCommissionRow(rate: String, amount: String) -> String {
+            localized("Comisión del banco (\(rate)): −\(amount) (pago único)", "Bank commission (\(rate)): −\(amount) (one-time)")
+        }
+
+        static func convenienceSheetEffectiveCapital(amount: String) -> String {
+            localized("Capital neto que reduce deuda: \(amount)", "Net capital that reduces debt: \(amount)")
+        }
+
+        static var convenienceSheetWhereFromIntroWithCommission: String {
+            localized(
+                "Si adelantás $1M con la comisión de tu banco, el capital se divide así:",
+                "If you prepay $1M with your bank's commission, the capital breaks down as follows:"
+            )
+        }
+
         static func conveniencePenaltyImpact(effectiveCapital: String, totalBudget: String, rate: String) -> String {
-            localized("Con penalidad, solo \(effectiveCapital) de \(totalBudget) bajarían deuda (\(rate) se va en comisión).", "With the penalty, only \(effectiveCapital) of \(totalBudget) would reduce debt (\(rate) goes to fees).")
+            localized("Con comisión, solo \(effectiveCapital) de \(totalBudget) bajarían deuda (\(rate) se va en la comisión).", "With the commission, only \(effectiveCapital) of \(totalBudget) would reduce debt (\(rate) goes to the commission).")
         }
 
         static func convenienceWinnerInvest(deltaToday: String) -> String {
@@ -553,8 +575,8 @@ enum AppStrings {
         static var invalidAmount: String { localized("Ingresá un monto válido.", "Enter a valid amount.") }
         static var reduceTerm: String { localized("Reducir plazo", "Reduce term") }
         static var reduceInstallment: String { localized("Reducir cuota", "Reduce installment") }
-        static var penaltyTitle: String { localized("Penalidad estimada", "Estimated penalty") }
-        static var penaltyContractTitle: String { localized("Penalidad contractual", "Contract penalty") }
+        static var penaltyTitle: String { localized("Comisión estimada", "Estimated commission") }
+        static var penaltyContractTitle: String { localized("Comisión contractual", "Contract commission") }
         static var totalPaymentTitle: String { localized("Total a pagar", "Total to pay") }
 
         static func reduceTermPreview(savings: String, remaining: String) -> String {
@@ -566,19 +588,19 @@ enum AppStrings {
         }
 
         static func penaltyPreviewFormat(amount: String, rate: String) -> String {
-            localized("Tu banco cobraría \(amount) de penalidad (\(rate) sobre el monto).", "Your bank would charge \(amount) as a penalty (\(rate) on the amount).")
+            localized("Tu banco te cobraría una comisión de \(amount) (\(rate) sobre el monto).", "Your bank would charge a commission of \(amount) (\(rate) on the amount).")
         }
 
         static func totalPaymentFormat(total: String) -> String {
-            localized("Adelanto + penalidad = \(total)", "Prepayment + penalty = \(total)")
+            localized("Capital + comisión = \(total)", "Principal + commission = \(total)")
         }
 
         static func penaltyStatusActive(limit: String) -> String {
-            localized("La penalidad aplica para este adelanto — vigente \(limit).", "The penalty applies to this prepayment — in force \(limit).")
+            localized("La comisión aplica para este adelanto — vigente \(limit).", "The commission applies to this prepayment — in force \(limit).")
         }
 
         static func penaltyStatusInactive(limit: String) -> String {
-            localized("Sin penalidad para esta fecha. La vigencia terminó \(limit).", "No penalty for this date. The period ended \(limit).")
+            localized("Sin comisión para esta fecha. La vigencia terminó \(limit).", "No commission for this date. The period ended \(limit).")
         }
 
         static func penaltyAppliesUntilDate(_ date: String) -> String {
@@ -591,6 +613,10 @@ enum AppStrings {
 
         static func penaltyAppliesUntilInstallment(_ installment: Int) -> String {
             localized("hasta la cuota \(installment)", "through installment \(installment)")
+        }
+
+        static var penaltyAppliesForever: String {
+            localized("sin vencimiento", "no expiry")
         }
     }
 
@@ -614,15 +640,19 @@ enum AppStrings {
         static var includeInsuranceSubtitle: String { localized("Se suma al importe de cada cuota.", "It is added to each installment amount.") }
         static var includedInsuranceTitle: String { localized("Seguro incluido en cuota", "Insurance included in installment") }
         static var includedInsuranceCaption: String { localized("Monto fijo en UVA por cuota.", "Fixed UVA amount per installment.") }
-        static var penaltySectionTitle: String { localized("Penalidad por adelanto", "Prepayment penalty") }
-        static var penaltySectionSubtitle: String { localized("Opcional. Algunos contratos cobran una comisión si adelantás capital durante los primeros meses o años del préstamo.", "Optional. Some contracts charge a fee if you prepay principal during the first months or years of the loan.") }
-        static var includePenalty: String { localized("Mi contrato incluye penalidad por adelanto", "My contract includes a prepayment penalty") }
+        static var penaltySectionTitle: String { localized("Comisión por precancelación", "Prepayment commission") }
+        static var penaltySectionSubtitle: String { localized("Opcional. Algunos contratos incluyen una comisión por precancelación (parcial o total) durante los primeros años del préstamo.", "Optional. Some contracts include a prepayment commission (partial or full) during the first years of the loan.") }
+        static var includePenalty: String { localized("Mi contrato incluye comisión por precancelación", "My contract includes a prepayment commission") }
         static var includePenaltySubtitle: String { localized("Si no la cargás, asumimos que no aplica.", "If you do not enter it, we assume it does not apply.") }
         static var penaltyRateTitle: String { localized("Porcentaje que cobra el banco", "Percentage charged by the bank") }
         static var penaltyRateCaption: String { localized("El banco te cobra este porcentaje sobre el capital que adelantás.", "The bank charges this percentage on the capital you prepay.") }
+        static var penaltyIncludesIVA: String { localized("El banco cobra IVA sobre esta comisión (21%)", "Bank charges VAT on this commission (21%)") }
+        static func penaltyEffectiveRateHint(rate: String) -> String {
+            localized("Tasa efectiva a guardar: \(rate)%", "Effective rate to save: \(rate)%")
+        }
         static var penaltyScopeTitle: String { localized("¿A qué adelantos aplica?", "Which prepayments does it apply to?") }
         static var penaltyWindowTitle: String { localized("¿Por cuánto tiempo aplica?", "How long does it apply?") }
-        static var penaltyWindowCaption: String { localized("Mirá tu contrato: puede decir \"primeras X cuotas\", \"primeros X meses\" o \"primeros X años\".", "Check your contract: it may say \"first X installments\", \"first X months\", or \"first X years\".") }
+        static var penaltyWindowCaption: String { localized("Mirá tu contrato: puede decir \"primeras X cuotas\", \"primeros X meses\" o \"primeros X años\". Si no tiene límite, elegí \"Siempre\".", "Check your contract: it may say \"first X installments\", \"first X months\", or \"first X years\". If there's no time limit, choose \"Always\".") }
         static var penaltyWindowValueTitle: String { localized("Cantidad", "Amount") }
         static var penaltyScopePartial: String { localized("Solo parciales", "Partial only") }
         static var penaltyScopeTotal: String { localized("Cancelación total", "Full payoff only") }
@@ -633,15 +663,16 @@ enum AppStrings {
         static var penaltyWindowInstallments: String { localized("Cuotas", "Installments") }
         static var penaltyWindowMonths: String { localized("Meses", "Months") }
         static var penaltyWindowYears: String { localized("Años", "Years") }
-        static var penaltyContractSummaryTitle: String { localized("Penalidad contractual", "Contract penalty") }
+        static var penaltyWindowLifetime: String { localized("Siempre", "Always") }
+        static var penaltyContractSummaryTitle: String { localized("Comisión contractual", "Contract commission") }
         static var saveLoan: String { localized("Guardar préstamo", "Save loan") }
         static var updateLoan: String { localized("Actualizar préstamo", "Update loan") }
         static var invalidTerm: String { localized("Ingresá un plazo entre 1 y 600 meses.", "Enter a term between 1 and 600 months.") }
         static var invalidRate: String { localized("La TNA debe estar entre 0% y 100%.", "The nominal annual rate must be between 0% and 100%.") }
         static var invalidAmount: String { localized("Ingresá un monto válido.", "Enter a valid amount.") }
         static var invalidInsurance: String { localized("Ingresá un seguro mayor a 0.", "Enter an insurance amount greater than 0.") }
-        static var invalidPenaltyRate: String { localized("Ingresá una penalidad entre 0% y 100%.", "Enter a penalty between 0% and 100%.") }
-        static var invalidPenaltyWindow: String { localized("Ingresá una ventana válida para la penalidad.", "Enter a valid penalty window.") }
+        static var invalidPenaltyRate: String { localized("Ingresá una comisión entre 0% y 100%.", "Enter a commission between 0% and 100%.") }
+        static var invalidPenaltyWindow: String { localized("Ingresá una ventana válida para la comisión.", "Enter a valid commission window.") }
 
         static func conversionPreview(uva: String, ars: String, usd: String) -> String {
             localized("Equivale a \(uva) UVA, \(ars) y \(usd) al momento del otorgamiento.", "This equals \(uva) UVA, \(ars), and \(usd) at the grant date.")
@@ -661,6 +692,17 @@ enum AppStrings {
 
         static func penaltyWindowYearsValue(_ value: Int) -> String {
             localized("los primeros \(value) años", "the first \(value) years")
+        }
+
+        static var penaltyWindowLifetimeValue: String {
+            localized("toda la vigencia del préstamo", "the full loan term")
+        }
+
+        static func penaltyBCRANote(date: String) -> String {
+            localized(
+                "A partir del \(date), la cancelación total es libre de comisión por ley (BCRA). Es tu derecho, independientemente de lo que diga tu contrato.",
+                "From \(date) onward, full cancellation is commission-free by law (BCRA). This is your right, regardless of what your contract says."
+            )
         }
     }
 

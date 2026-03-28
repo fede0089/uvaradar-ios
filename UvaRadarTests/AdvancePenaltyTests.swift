@@ -173,7 +173,7 @@ final class AdvancePenaltyTests: XCTestCase {
             input: input
         )
 
-        XCTAssertEqual(notice?.title, "La penalidad reduce el capital efectivo")
+        XCTAssertEqual(notice?.title, "La comisión reduce el capital efectivo")
         XCTAssertTrue(notice?.detail.contains("3,0%") == true)
         XCTAssertTrue(notice?.detail.contains("hasta la cuota 12") == true)
         XCTAssertTrue(notice?.detail.contains("realmente baja deuda") == true)
@@ -227,7 +227,67 @@ final class AdvancePenaltyTests: XCTestCase {
         )
 
         let totalText = AdvancePenaltyEvaluator.totalPaymentText(for: estimate!)
-        XCTAssertTrue(totalText.contains("Adelanto + penalidad"))
+        XCTAssertTrue(totalText.contains("Capital + comisión"))
         XCTAssertTrue(totalText.contains("1.030,00"))
+    }
+
+    func testPartialAdvanceStatus_WhenRuleIsLifetime_AlwaysApplies() {
+        let input = CaseInput(
+            grantDate: "2024-01-15",
+            firstDueDate: "2024-02-01",
+            totalMonths: 240,
+            tna: 0.1,
+            originalAmount: 100_000,
+            originalCurrency: .ars,
+            advancePenalty: AdvancePenaltyRule(
+                rate: 0.04,
+                scope: .partial,
+                windowValue: 0,
+                windowUnit: .lifetime
+            )
+        )
+
+        let earlyStatus = AdvancePenaltyEvaluator.partialAdvanceStatus(
+            eventDateISO: "2024-06-01",
+            input: input
+        )
+        XCTAssertEqual(earlyStatus?.applies, true)
+        XCTAssertEqual(earlyStatus?.limitText, "sin vencimiento")
+
+        let lateStatus = AdvancePenaltyEvaluator.partialAdvanceStatus(
+            eventDateISO: "2040-01-01",
+            input: input
+        )
+        XCTAssertEqual(lateStatus?.applies, true)
+        XCTAssertEqual(lateStatus?.limitText, "sin vencimiento")
+    }
+
+    func testEstimatePartialAdvanceFee_WhenRuleIsLifetime_ReturnsFee() {
+        let input = CaseInput(
+            grantDate: "2024-01-15",
+            firstDueDate: "2024-02-01",
+            totalMonths: 240,
+            tna: 0.1,
+            originalAmount: 100_000,
+            originalCurrency: .ars,
+            advancePenalty: AdvancePenaltyRule(
+                rate: 0.04,
+                scope: .partial,
+                windowValue: 0,
+                windowUnit: .lifetime
+            )
+        )
+
+        let estimate = AdvancePenaltyEvaluator.estimatePartialAdvanceFee(
+            amount: 1_000,
+            currency: .ars,
+            eventDateISO: "2035-05-10",
+            input: input
+        )
+
+        XCTAssertNotNil(estimate)
+        XCTAssertEqual(estimate!.feeAmount, 40, accuracy: 0.0001)
+        XCTAssertEqual(estimate!.totalAmount, 1_040, accuracy: 0.0001)
+        XCTAssertEqual(estimate!.limitText, "sin vencimiento")
     }
 }

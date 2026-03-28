@@ -77,7 +77,7 @@ struct ConvenienceEstimate: Equatable {
         let effectivePenaltyRate = max(0, penaltyRate ?? 0)
         let penaltyApplies = effectivePenaltyRate > 0
         let effectivePrepaymentUVA = penaltyApplies
-            ? amountUVA / (1 + effectivePenaltyRate)
+            ? amountUVA * (1 - effectivePenaltyRate)
             : amountUVA
 
         let futureInvestmentValueUVA = amountUVA * pow(1 + investmentMonthlyRealRate, Double(horizonMonths))
@@ -121,7 +121,7 @@ struct ConvenienceEstimate: Equatable {
         let investMonthlyNominal = nominalAnnualRate / 12
         let investMonthlyReal = (1 + investMonthlyNominal) / (1 + uvaMonthlyGrowthEstimate) - 1
 
-        let effectivePrepayFactor = penaltyRate.map { 1.0 / (1 + $0) } ?? 1.0
+        let effectivePrepayFactor = penaltyRate.map { 1.0 - $0 } ?? 1.0
         let T = Double(remainingMonths)
         let investFuture = pow(1 + investMonthlyReal, T)
         let prepayFuture = effectivePrepayFactor * pow(1 + loanMonthlyRealRate, T)

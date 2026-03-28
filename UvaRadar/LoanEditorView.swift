@@ -16,6 +16,7 @@ struct LoanEditorView: View {
     @State private var insuranceUVA: String
     @State private var hasAdvancePenalty: Bool
     @State private var penaltyRatePercent: String
+    @State private var penaltyIncludesIVA: Bool
     @State private var penaltyScope: AdvancePenaltyScope
     @State private var penaltyWindowValue: String
     @State private var penaltyWindowUnit: AdvancePenaltyWindowUnit
@@ -40,6 +41,7 @@ struct LoanEditorView: View {
         _insuranceUVA = State(initialValue: existingInput.map { AppFormatting.number($0.insuranceUVA, decimals: 2) } ?? "")
         _hasAdvancePenalty = State(initialValue: existingInput?.advancePenalty != nil)
         _penaltyRatePercent = State(initialValue: existingInput?.advancePenalty.map { AppFormatting.number($0.rate * 100, decimals: 2) } ?? "")
+        _penaltyIncludesIVA = State(initialValue: false)
         _penaltyScope = State(initialValue: existingInput?.advancePenalty?.scope ?? .partial)
         _penaltyWindowValue = State(initialValue: existingInput?.advancePenalty.map { String($0.windowValue) } ?? "")
         _penaltyWindowUnit = State(initialValue: existingInput?.advancePenalty?.windowUnit ?? .installments)
@@ -285,6 +287,20 @@ struct LoanEditorView: View {
                         trailingText: "%"
                     )
 
+                    Toggle(isOn: $penaltyIncludesIVA) {
+                        Text(AppStrings.LoanEditor.penaltyIncludesIVA)
+                            .font(.subheadline)
+                    }
+                    .toggleStyle(.switch)
+
+                    if penaltyIncludesIVA, let baseRate = Double(penaltyRatePercent.replacingOccurrences(of: ",", with: ".")), baseRate > 0 {
+                        Text(AppStrings.LoanEditor.penaltyEffectiveRateHint(
+                            rate: AppFormatting.number(baseRate * 1.21, decimals: 2)
+                        ))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    }
+
                     VStack(alignment: .leading, spacing: 10) {
                         Text(AppStrings.LoanEditor.penaltyScopeTitle)
                             .font(.subheadline.weight(.semibold))
@@ -300,7 +316,14 @@ struct LoanEditorView: View {
                         Text(AppStrings.LoanEditor.penaltyWindowTitle)
                             .font(.subheadline.weight(.semibold))
 
-                        HStack(spacing: 12) {
+                        Picker(AppStrings.LoanEditor.penaltyWindowTitle, selection: $penaltyWindowUnit) {
+                            ForEach(AdvancePenaltyWindowUnit.allCases) { unit in
+                                Text(unit.title).tag(unit)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+
+                        if penaltyWindowUnit != .lifetime {
                             EditorField(
                                 title: AppStrings.LoanEditor.penaltyWindowValueTitle,
                                 caption: "",
@@ -309,14 +332,6 @@ struct LoanEditorView: View {
                                 keyboardType: .numberPad,
                                 trailingText: penaltyWindowUnit.title
                             )
-                            .frame(maxWidth: 130)
-
-                            Picker(AppStrings.LoanEditor.penaltyWindowTitle, selection: $penaltyWindowUnit) {
-                                ForEach(AdvancePenaltyWindowUnit.allCases) { unit in
-                                    Text(unit.title).tag(unit)
-                                }
-                            }
-                            .pickerStyle(.segmented)
                         }
 
                         Text(AppStrings.LoanEditor.penaltyWindowCaption)
@@ -327,6 +342,10 @@ struct LoanEditorView: View {
                     if let penaltySummaryText {
                         MessageCard(text: penaltySummaryText, accent: .orange, symbol: "doc.text.magnifyingglass")
                     }
+                }
+
+                if let bcraNote = bcraTotalCancellationFreeNote {
+                    MessageCard(text: bcraNote, accent: .blue, symbol: "info.circle")
                 }
             }
         }
@@ -344,9 +363,14 @@ struct LoanEditorView: View {
 
     private var currentAdvancePenaltyRule: AdvancePenaltyRule? {
         let rate = parseDecimal(penaltyRatePercent) / 100
-        let windowValue = Int(penaltyWindowValue) ?? 0
+        guard rate > 0 else { return nil }
 
-        guard rate > 0, windowValue > 0 else { return nil }
+        if penaltyWindowUnit == .lifetime {
+            return AdvancePenaltyRule(rate: rate, scope: penaltyScope, windowValue: 0, windowUnit: .lifetime)
+        }
+
+        let windowValue = Int(penaltyWindowValue) ?? 0
+        guard windowValue > 0 else { return nil }
 
         return AdvancePenaltyRule(
             rate: rate,
@@ -354,6 +378,15 @@ struct LoanEditorView: View {
             windowValue: windowValue,
             windowUnit: penaltyWindowUnit
         )
+    }
+
+    private var bcraTotalCancellationFreeNote: String? {
+        let months = Int(totalMonths) ?? 0
+        guard months > 0 else { return nil }
+        let thresholdMonths = max(6, months / 4)
+        let baseISO = ISODateSupport.string(from: grantDate)
+        guard let thresholdISO = ISODateSupport.addMonths(thresholdMonths, to: baseISO) else { return nil }
+        return AppStrings.LoanEditor.penaltyBCRANote(date: UIDateSupport.displayDate(from: thresholdISO))
     }
 
     private var primaryAction: some View {
@@ -396,7 +429,8 @@ struct LoanEditorView: View {
         let tna = parseDecimal(tnaPercent) / 100
         let amount = parseDecimal(originalAmount)
         let insuranceAmount = parseDecimal(insuranceUVA)
-        let penaltyRate = parseDecimal(penaltyRatePercent) / 100
+        let penaltyBaseRate = parseDecimal(penaltyRatePercent) / 100
+        let penaltyRate = penaltyIncludesIVA ? penaltyBaseRate * 1.21 : penaltyBaseRate
         let penaltyWindow = Int(penaltyWindowValue) ?? 0
 
         guard months >= 1, months <= 600 else {
@@ -419,12 +453,12 @@ struct LoanEditorView: View {
             AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "insurance_uva"])
             return
         }
-        if hasAdvancePenalty, !(penaltyRate > 0 && penaltyRate <= 1) {
+        if hasAdvancePenalty, !(penaltyBaseRate > 0 && penaltyRate <= 1) {
             validationMessage = AppStrings.LoanEditor.invalidPenaltyRate
             AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "advance_penalty_rate"])
             return
         }
-        if hasAdvancePenalty, penaltyWindow < 1 {
+        if hasAdvancePenalty, penaltyWindowUnit != .lifetime, penaltyWindow < 1 {
             validationMessage = AppStrings.LoanEditor.invalidPenaltyWindow
             AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "advance_penalty_window"])
             return
@@ -447,7 +481,7 @@ struct LoanEditorView: View {
             advancePenalty: hasAdvancePenalty ? AdvancePenaltyRule(
                 rate: penaltyRate,
                 scope: penaltyScope,
-                windowValue: penaltyWindow,
+                windowValue: penaltyWindowUnit == .lifetime ? 0 : penaltyWindow,
                 windowUnit: penaltyWindowUnit
             ) : nil
         )

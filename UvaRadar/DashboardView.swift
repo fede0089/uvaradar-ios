@@ -639,7 +639,8 @@ private struct ConvenienceComparisonCard: View {
 
             switch estimate.status {
             case .ok:
-                let thresholdStr = AppFormatting.percent(estimate.loanAnnualNominalEquivalent, decimals: 1)
+                let effectiveRate = penaltyNotice.map { estimate.loanAnnualNominalEquivalent * (1 - $0.penaltyRate) } ?? estimate.loanAnnualNominalEquivalent
+                let thresholdStr = AppFormatting.percent(effectiveRate, decimals: 1)
                 VStack(alignment: .leading, spacing: 16) {
                     // [1] Threshold box — tappable completo
                     Button {
@@ -692,7 +693,7 @@ private struct ConvenienceComparisonCard: View {
                         .foregroundStyle(.tertiary)
                 }
                 .sheet(isPresented: $showMethodSheet) {
-                    ConvenienceMethodSheet(estimate: estimate)
+                    ConvenienceMethodSheet(estimate: estimate, penaltyNotice: penaltyNotice)
                 }
 
             case .insufficientData:
@@ -712,20 +713,31 @@ private struct ConvenienceComparisonCard: View {
 
 private struct ConvenienceMethodSheet: View {
     let estimate: ConvenienceEstimate
+    let penaltyNotice: DashboardPenaltyNotice?
 
     private var combinedMonthly: Double {
         (1 + estimate.loanMonthlyRealRate) * (1 + estimate.uvaMonthlyGrowthEstimate) - 1
     }
+    private var originalThresholdRate: Double { estimate.loanAnnualNominalEquivalent }
+    private var effectiveThresholdRate: Double {
+        penaltyNotice.map { originalThresholdRate * (1 - $0.penaltyRate) } ?? originalThresholdRate
+    }
     private var threshold: String {
-        AppFormatting.percent(estimate.loanAnnualNominalEquivalent, decimals: 1)
+        AppFormatting.percent(effectiveThresholdRate, decimals: 1)
     }
     private var monthlyRateStr: String {
         AppFormatting.percent(combinedMonthly, decimals: 2)
     }
     private let exampleAmount: Double = 1_000_000
-    private var exampleInterest: Double { exampleAmount * estimate.loanMonthlyRealRate }
-    private var exampleInflation: Double { exampleAmount * estimate.uvaMonthlyGrowthEstimate }
-    private var exampleTotal: Double { exampleInterest + exampleInflation }
+    private var effectiveExampleAmount: Double {
+        penaltyNotice.map { exampleAmount * (1 - $0.penaltyRate) } ?? exampleAmount
+    }
+    private var exampleCommissionAmount: Double {
+        exampleAmount - effectiveExampleAmount
+    }
+    private var exampleInterest: Double { effectiveExampleAmount * estimate.loanMonthlyRealRate }
+    private var exampleInflation: Double { effectiveExampleAmount * estimate.uvaMonthlyGrowthEstimate }
+    private var exampleTotal: Double { effectiveExampleAmount * combinedMonthly }
     private var exampleTotalStr: String { "~$" + AppFormatting.number(exampleTotal, decimals: 0) }
 
     var body: some View {
@@ -767,6 +779,14 @@ private struct ConvenienceMethodSheet: View {
             Text(AppStrings.Dashboard.convenienceSheetRuleCaption)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            if let notice = penaltyNotice {
+                Text(AppStrings.Dashboard.convenienceSheetAdjustedNote(
+                    original: AppFormatting.percent(originalThresholdRate, decimals: 1),
+                    rate: AppFormatting.percent(notice.penaltyRate, decimals: 1)
+                ))
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
         }
     }
 
@@ -812,14 +832,40 @@ private struct ConvenienceMethodSheet: View {
     private var whereFromSection: some View {
         let tna = AppFormatting.percent(estimate.loanMonthlyRealRate * 12, decimals: 1)
         let uvaMonthly = AppFormatting.percent(estimate.uvaMonthlyGrowthEstimate, decimals: 2)
+        let effectiveCapitalStr = "~$" + AppFormatting.number(effectiveExampleAmount, decimals: 0)
 
         return VStack(alignment: .leading, spacing: 12) {
             Text(AppStrings.Dashboard.convenienceSheetWhereFromTitle)
                 .font(.subheadline.weight(.semibold))
 
-            Text(AppStrings.Dashboard.convenienceSheetWhereFromIntro)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            if let notice = penaltyNotice {
+                Text(AppStrings.Dashboard.convenienceSheetWhereFromIntroWithCommission)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(AppStrings.Dashboard.convenienceSheetCommissionRow(
+                            rate: AppFormatting.percent(notice.penaltyRate, decimals: 1),
+                            amount: "~$" + AppFormatting.number(exampleCommissionAmount, decimals: 0)
+                        ))
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                        Spacer()
+                    }
+                    HStack {
+                        Text(AppStrings.Dashboard.convenienceSheetEffectiveCapital(amount: effectiveCapitalStr))
+                            .font(.footnote.weight(.semibold))
+                        Spacer()
+                    }
+                }
+                .padding(12)
+                .background(Color.orange.opacity(0.08), in: .rect(cornerRadius: 10))
+            } else {
+                Text(AppStrings.Dashboard.convenienceSheetWhereFromIntro)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
@@ -851,7 +897,15 @@ private struct ConvenienceMethodSheet: View {
             .padding(12)
             .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10))
 
-            Text(AppStrings.Dashboard.convenienceSheetCostInsight(total: exampleTotalStr, threshold: threshold))
+            Text(AppStrings.Dashboard.convenienceSheetWhereFromFormula(
+                monthly: AppFormatting.number(exampleTotal, decimals: 0),
+                threshold: threshold
+            ))
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+
+            Text(AppStrings.Dashboard.convenienceSheetCostInsight(total: exampleTotalStr))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
