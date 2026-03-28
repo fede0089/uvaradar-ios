@@ -5,7 +5,12 @@
       "mcp__xcode__BuildProject",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "mcp__xcode__XcodeGlob"
+      "mcp__xcode__XcodeGlob",
+      "mcp__xcode__XcodeRead",
+      "mcp__xcode__RunAllTests",
+      "mcp__xcode__GetTestList",
+      "mcp__xcode__RunSomeTests",
+      "mcp__xcode__XcodeGrep"
     ]
   }
 }

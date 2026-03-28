@@ -5,7 +5,7 @@ struct DashboardView: View {
     let model: AppModel
     let series: SeriesBundle
 
-    @State private var displayCurrency: LoanCurrency = .uva
+    @State private var displayCurrency: LoanCurrency = .ars
     @State private var showingAdvanceSheet = false
     @State private var contractExpanded = false
     @State private var advancesExpanded = false
@@ -16,6 +16,7 @@ struct DashboardView: View {
 
             VStack(spacing: 18) {
                 primaryStatusCard(snapshot: snapshot, input: input, computed: computed)
+                convenienceCard(input: input)
                 progressSummaryCard(input: input, computed: computed)
                 contractSummaryCard(input: input, computed: computed)
                 advancesSummaryCard
@@ -31,8 +32,30 @@ struct DashboardView: View {
         }
     }
 
+    @ViewBuilder
+    private func convenienceCard(input: CaseInput) -> some View {
+        if let estimate = model.convenienceEstimate {
+            let penaltyNotice = AdvancePenaltyEvaluator.dashboardPenaltyNotice(
+                referenceDateISO: series.manifest.lastCloseDate,
+                input: input
+            )
+            ConvenienceComparisonCard(estimate: estimate, penaltyNotice: penaltyNotice)
+        }
+    }
+
     private func primaryStatusCard(snapshot: DashboardSnapshot, input: CaseInput, computed: CaseComputed) -> some View {
-        CardContainer {
+        let paymentSlices = installmentCompositionSlices(
+            capital: snapshot.capitalComponent,
+            interest: snapshot.interestComponent,
+            insurance: input.insuranceIncluded ? snapshot.insuranceComponent : nil,
+            currency: displayCurrency
+        )
+        let penaltyStatus = AdvancePenaltyEvaluator.partialAdvanceStatus(
+            eventDateISO: series.manifest.lastCloseDate,
+            input: input
+        )
+
+        return CardContainer {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
@@ -58,23 +81,16 @@ struct DashboardView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if let debtCostEstimate = model.debtCostEstimate {
-                    DebtCostReferenceCard(estimate: debtCostEstimate)
-                }
+                NextInstallmentHeroCard(
+                    value: AppFormatting.currency(snapshot.nextInstallment, currency: displayCurrency),
+                    dueDateText: snapshot.nextDueDateText,
+                    slices: paymentSlices
+                )
 
                 StatusMetricsGrid(items: [
                     StatusMetric(
-                        title: UvaTerminology.nextInstallment,
-                        value: AppFormatting.currency(snapshot.nextInstallment, currency: displayCurrency),
-                        isHighlighted: true
-                    ),
-                    StatusMetric(
                         title: UvaTerminology.capitalPending,
                         value: AppFormatting.currency(snapshot.pendingBalance, currency: displayCurrency)
-                    ),
-                    StatusMetric(
-                        title: AppStrings.Terminology.nextDueDate,
-                        value: snapshot.nextDueDateText
                     ),
                     StatusMetric(
                         title: UvaTerminology.remainingTerm,
@@ -82,14 +98,6 @@ struct DashboardView: View {
                     )
                 ])
 
-                PaymentBreakdownSummary(
-                    slices: installmentCompositionSlices(
-                        capital: snapshot.capitalComponent,
-                        interest: snapshot.interestComponent,
-                        insurance: input.insuranceIncluded ? snapshot.insuranceComponent : nil,
-                        currency: displayCurrency
-                    )
-                )
             }
         }
     }
@@ -170,6 +178,10 @@ struct DashboardView: View {
                         MetricItem(title: AppStrings.Dashboard.originalAmount, value: AppFormatting.currency(initialAmount, currency: displayCurrency), symbol: nil, tint: .secondary, compact: true),
                         MetricItem(title: AppStrings.Dashboard.initialInstallment, value: AppFormatting.currency(initialInstallment, currency: displayCurrency), symbol: nil, tint: .secondary, compact: true)
                     ])
+
+                    if let advancePenalty = input.advancePenalty {
+                        ContractPenaltyCard(rule: advancePenalty)
+                    }
                 }
                 .padding(.top, 14)
             } label: {
@@ -303,6 +315,7 @@ private struct DashboardSnapshot {
     let interestComponent: Double
     let insuranceComponent: Double
     let installmentsProgress: Double
+    let nextDueDateISO: String?
     let nextDueDateText: String
 
     init(input: CaseInput, computed: CaseComputed, series: SeriesBundle, currency: LoanCurrency) {
@@ -323,6 +336,7 @@ private struct DashboardSnapshot {
         interestComponent = amountInDisplayCurrency(uvaAmount: interestUVA, currency: currency, uvaValue: computed.cutoffUVA, usdValue: cutoffUSD)
         insuranceComponent = amountInDisplayCurrency(uvaAmount: insuranceUVA, currency: currency, uvaValue: computed.cutoffUVA, usdValue: cutoffUSD)
         installmentsProgress = Double(computed.paidCount) / Double(totalPlannedNow)
+        nextDueDateISO = nextDueISO
         nextDueDateText = nextDueISO.map { UIDateSupport.displayDate(from: $0) } ?? AppStrings.Common.noUpcomingPayments
     }
 }
@@ -467,35 +481,71 @@ private struct StatusMetricsGrid: View {
     }
 }
 
-private struct PaymentBreakdownSummary: View {
+private struct NextInstallmentHeroCard: View {
+    let value: String
+    let dueDateText: String
     let slices: [InstallmentCompositionSlice]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(AppStrings.Dashboard.paymentBreakdownTitle)
-                .font(.subheadline.weight(.semibold))
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(UvaTerminology.nextInstallment)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.title2.weight(.bold))
+                    .minimumScaleFactor(0.82)
+                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(AppStrings.Terminology.nextDueDate)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(dueDateText)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+            }
 
-            Text(AppStrings.Dashboard.paymentBreakdownSubtitle)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
-            HStack(alignment: .center, spacing: 16) {
-                InstallmentCompositionDonut(slices: slices, size: 84)
-
-                VStack(alignment: .leading, spacing: 8) {
+            if !slices.isEmpty {
+                VStack(spacing: 8) {
                     ForEach(slices) { slice in
-                        CompositionLegendRow(
-                            title: slice.mainDisplayTitle,
-                            value: slice.formattedValue,
-                            color: slice.color,
-                            detail: slice.percentText
-                        )
+                        CompactBreakdownPill(slice: slice)
                     }
                 }
-
-                Spacer(minLength: 0)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.accentColor.opacity(0.10), in: .rect(cornerRadius: 20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.accentColor.opacity(0.16), lineWidth: 1)
+        }
+    }
+}
+
+private struct CompactBreakdownPill: View {
+    let slice: InstallmentCompositionSlice
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(slice.color)
+                .frame(width: 8, height: 8)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(slice.compactDisplayTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text(slice.formattedValue)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .background(Color(uiColor: .systemBackground).opacity(0.65), in: .rect(cornerRadius: 14))
     }
 }
 
@@ -576,97 +626,77 @@ private struct AdvanceSummaryHeader: View {
     }
 }
 
-private struct DebtCostReferenceCard: View {
-    let estimate: DebtCostEstimate
+private struct ConvenienceComparisonCard: View {
+    let estimate: ConvenienceEstimate
+    let penaltyNotice: DashboardPenaltyNotice?
+
+    @State private var showMethodSheet = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(AppStrings.Dashboard.debtReferenceHeroTitle)
-                    .font(.headline)
-                Text(AppStrings.Dashboard.debtReferenceHeroSubtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            Text(AppStrings.Dashboard.convenienceHeroTitle)
+                .font(.headline)
 
             switch estimate.status {
             case .ok:
-                VStack(alignment: .leading, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(AppStrings.Dashboard.debtReferenceThresholdLabel)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-
-                        Text(AppFormatting.percent(estimate.annualDebtCostEquivalent, decimals: 1))
-                            .font(.title2.weight(.bold))
-                            .accessibilityLabel(AppStrings.Dashboard.debtReferenceThresholdLabel)
-
-                        Text(AppStrings.Dashboard.debtReferenceThresholdCaption)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-                    .background(Color.accentColor.opacity(0.10), in: .rect(cornerRadius: 16))
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        decisionRow(
-                            symbol: "chart.line.uptrend.xyaxis",
-                            text: AppStrings.Dashboard.debtReferenceInvestingUpside
-                        )
-                        decisionRow(
-                            symbol: "arrow.down.left.circle",
-                            text: AppStrings.Dashboard.debtReferencePrepayingUpside
-                        )
-                    }
-
-                    ViewThatFits {
-                        HStack(spacing: 10) {
-                            referencePill(
-                                title: AppStrings.Dashboard.debtReferenceMonthlyLabel,
-                                value: AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1)
-                            )
-                            referencePill(
-                                title: AppStrings.Dashboard.debtReferenceCalculatedLabel,
-                                value: UIDateSupport.displayDate(from: estimate.anchorDate)
-                            )
-                        }
-
-                        VStack(spacing: 10) {
-                            referencePill(
-                                title: AppStrings.Dashboard.debtReferenceMonthlyLabel,
-                                value: AppFormatting.percent(estimate.monthlyDebtCostEstimate, decimals: 1)
-                            )
-                            referencePill(
-                                title: AppStrings.Dashboard.debtReferenceCalculatedLabel,
-                                value: UIDateSupport.displayDate(from: estimate.anchorDate)
-                            )
-                        }
-                    }
-
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(AppStrings.Dashboard.debtReferenceCompareCaption)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-
-                        Link(destination: URL(string: "https://comparatasas.ar")!) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.up.right.square")
-                                Text(AppStrings.Dashboard.debtReferenceCompareLinkLabel)
+                let thresholdStr = AppFormatting.percent(estimate.loanAnnualNominalEquivalent, decimals: 1)
+                VStack(alignment: .leading, spacing: 16) {
+                    // [1] Threshold box — tappable completo
+                    Button {
+                        showMethodSheet = true
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(AppStrings.Dashboard.convenienceThresholdLabel)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Image(systemName: "info.circle")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
                             }
-                            .font(.footnote.weight(.semibold))
+                            Text(thresholdStr + " TNA")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(.primary)
+                                .accessibilityLabel(AppStrings.Dashboard.convenienceThresholdLabel)
+                            Text(AppStrings.Dashboard.convenienceThresholdCaption)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(14)
+                        .background(Color.accentColor.opacity(0.10), in: .rect(cornerRadius: 16))
+                        .contentShape(.rect(cornerRadius: 16))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(AppStrings.Dashboard.convenienceMethodSheetTitle)
+
+                    // [3] Penalty hint
+                    if let notice = penaltyNotice {
+                        HStack(alignment: .top, spacing: 5) {
+                            Image(systemName: "exclamationmark.circle")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                            Text(AppStrings.Dashboard.conveniencePenaltyInputHint(
+                                rate: AppFormatting.percent(notice.penaltyRate, decimals: 1),
+                                limit: notice.limitText
+                            ))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                     }
 
-                    Text(estimate.methodNote)
+                    // [4] Footnote
+                    Text(AppStrings.Dashboard.convenienceCalculatedAt(UIDateSupport.displayDate(from: estimate.anchorDate)))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
+                .sheet(isPresented: $showMethodSheet) {
+                    ConvenienceMethodSheet(estimate: estimate)
+                }
 
             case .insufficientData:
-                Text(AppStrings.Dashboard.debtReferenceInsufficientData)
+                Text(AppStrings.Dashboard.convenienceInsufficientData)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -678,37 +708,294 @@ private struct DebtCostReferenceCard: View {
                 .stroke(Color.primary.opacity(0.04), lineWidth: 1)
         )
     }
+}
 
-    private func decisionRow(symbol: String, text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: symbol)
-                .font(.footnote.weight(.semibold))
+private struct ConvenienceMethodSheet: View {
+    let estimate: ConvenienceEstimate
+
+    private var combinedMonthly: Double {
+        (1 + estimate.loanMonthlyRealRate) * (1 + estimate.uvaMonthlyGrowthEstimate) - 1
+    }
+    private var threshold: String {
+        AppFormatting.percent(estimate.loanAnnualNominalEquivalent, decimals: 1)
+    }
+    private var monthlyRateStr: String {
+        AppFormatting.percent(combinedMonthly, decimals: 2)
+    }
+    private let exampleAmount: Double = 1_000_000
+    private var exampleInterest: Double { exampleAmount * estimate.loanMonthlyRealRate }
+    private var exampleInflation: Double { exampleAmount * estimate.uvaMonthlyGrowthEstimate }
+    private var exampleTotal: Double { exampleInterest + exampleInflation }
+    private var exampleTotalStr: String { "~$" + AppFormatting.number(exampleTotal, decimals: 0) }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    ruleHeroSection
+                    decisionCardsSection
+                    Divider()
+                    whereFromSection
+                    Divider()
+                    howCalculatedSection
+                    Divider()
+                    Link(destination: URL(string: "https://comparatasas.ar")!) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.right.square")
+                            Text(AppStrings.Dashboard.convenienceCompareLinkLabel)
+                        }
+                        .font(.footnote.weight(.semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(20)
+            }
+            .navigationTitle(AppStrings.Dashboard.convenienceMethodSheetTitle)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.large])
+    }
+
+    private var ruleHeroSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(AppStrings.Dashboard.convenienceSheetRuleTitle)
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 16, height: 16)
-
-            Text(text)
+            Text(threshold)
+                .font(.system(size: 52, weight: .bold))
+                .foregroundStyle(Color.accentColor)
+            Text(AppStrings.Dashboard.convenienceSheetRuleCaption)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-
-            Spacer(minLength: 0)
         }
     }
 
-    private func referencePill(title: String, value: String) -> some View {
+    private var decisionCardsSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(AppStrings.Dashboard.convenienceSheetDecisionContext)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 10)
+
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+                    .font(.title3)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(AppStrings.Dashboard.convenienceSheetDecisionInvestCondition(threshold: threshold))
+                        .font(.subheadline.weight(.semibold))
+                    Text(AppStrings.Dashboard.convenienceSheetDecisionInvestConsequence)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 12)
+
+            Divider()
+
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .font(.title3)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(AppStrings.Dashboard.convenienceSheetDecisionPrepayCondition(threshold: threshold))
+                        .font(.subheadline.weight(.semibold))
+                    Text(AppStrings.Dashboard.convenienceSheetDecisionPrepayConsequence)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 12)
+        }
+    }
+
+    private var whereFromSection: some View {
+        let tna = AppFormatting.percent(estimate.loanMonthlyRealRate * 12, decimals: 1)
+        let uvaMonthly = AppFormatting.percent(estimate.uvaMonthlyGrowthEstimate, decimals: 2)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text(AppStrings.Dashboard.convenienceSheetWhereFromTitle)
+                .font(.subheadline.weight(.semibold))
+
+            Text(AppStrings.Dashboard.convenienceSheetWhereFromIntro)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(AppStrings.Dashboard.convenienceBreakdownInterest(tna: tna))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("~$" + AppFormatting.number(exampleInterest, decimals: 0))
+                        .font(.footnote.weight(.semibold))
+                }
+                HStack {
+                    Text(AppStrings.Dashboard.convenienceBreakdownInflation(monthly: uvaMonthly))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("~$" + AppFormatting.number(exampleInflation, decimals: 0))
+                        .font(.footnote.weight(.semibold))
+                }
+                Divider()
+                HStack {
+                    Text(AppStrings.Dashboard.convenienceBreakdownTotal)
+                        .font(.footnote.weight(.semibold))
+                    Spacer()
+                    Text(exampleTotalStr)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+            .padding(12)
+            .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10))
+
+            Text(AppStrings.Dashboard.convenienceSheetCostInsight(total: exampleTotalStr, threshold: threshold))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text(AppStrings.Dashboard.convenienceSheetWhereFromDisclaimer)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+        }
+    }
+
+    private var howCalculatedSection: some View {
+        let tna = AppFormatting.percent(estimate.loanMonthlyRealRate * 12, decimals: 1)
+        let monthly = AppFormatting.percent(estimate.loanMonthlyRealRate, decimals: 2)
+        let uvaMonthly = AppFormatting.percent(estimate.uvaMonthlyGrowthEstimate, decimals: 2)
+        let teaStr = AppFormatting.percent(estimate.loanAnnualEffectiveEquivalent, decimals: 1)
+
+        return DisclosureGroup(AppStrings.Dashboard.convenienceHowCalculatedTitle) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(AppStrings.Dashboard.convenienceMethodIntro)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(AppStrings.Dashboard.convenienceMethodStep1(tna: tna, monthly: monthly))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Divider()
+                    Text(AppStrings.Dashboard.convenienceMethodStep2(uvaMonthly: uvaMonthly))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Divider()
+                    Text(AppStrings.Dashboard.convenienceMethodFormula(monthlyRate: monthlyRateStr, threshold: threshold, tea: teaStr))
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+                .padding(12)
+                .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10))
+            }
+            .padding(.top, 8)
+        }
+        .font(.subheadline.bold())
+    }
+}
+
+private struct ConvenienceMetricCard: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .minimumScaleFactor(0.82)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 14))
+    }
+}
+
+private struct ConvenienceInputField: View {
+    let title: String
+    let caption: String?
+    @Binding var text: String
+    let keyboardType: UIKeyboardType
+    let trailingText: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 8) {
+                TextField(title, text: $text)
+                    .keyboardType(keyboardType)
+                    .textFieldStyle(.plain)
+                    .font(.body.weight(.medium))
+
+                Text(trailingText)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 14))
+
+            if let caption {
+                Text(caption)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct ConvenienceResultRow: View {
+    let title: String
+    let value: String
+    let caption: String?
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
-
             Text(value)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
+                .font(.headline)
+                .minimumScaleFactor(0.82)
+                .lineLimit(2)
+            if let caption {
+                Text(caption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color(uiColor: .systemBackground).opacity(0.6), in: .rect(cornerRadius: 14))
+        .padding(12)
+        .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 14))
+    }
+}
+
+private struct ContractPenaltyCard: View {
+    let rule: AdvancePenaltyRule
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(AppStrings.LoanEditor.penaltyContractSummaryTitle)
+                .font(.subheadline.weight(.semibold))
+
+            Text(AdvancePenaltyEvaluator.summaryText(for: rule))
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+        }
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemBackground), in: .rect(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.primary.opacity(0.04), lineWidth: 1)
+        )
     }
 }
 
@@ -1145,6 +1432,44 @@ struct AdvanceEditorView: View {
                     Text(AppStrings.AdvanceEditor.footer)
                 }
 
+                if let partialPenaltyStatus {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Label(
+                                AdvancePenaltyEvaluator.statusText(for: partialPenaltyStatus),
+                                systemImage: partialPenaltyStatus.applies ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+                            )
+                            .foregroundStyle(partialPenaltyStatus.applies ? .orange : .secondary)
+
+                            if let estimate = penaltyEstimate {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(AppStrings.AdvanceEditor.penaltyTitle)
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.orange)
+                                    Text(AppFormatting.currency(estimate.feeAmount, currency: estimate.currency))
+                                        .font(.title3.weight(.bold))
+                                        .foregroundStyle(.orange)
+                                    Text(AdvancePenaltyEvaluator.previewText(for: estimate))
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(12)
+                                .background(Color.orange.opacity(0.08), in: .rect(cornerRadius: 12))
+
+                                Label(
+                                    AppStrings.AdvanceEditor.totalPaymentFormat(
+                                        total: AppFormatting.currency(estimate.totalAmount, currency: estimate.currency)
+                                    ),
+                                    systemImage: "banknote.fill"
+                                )
+                                .foregroundStyle(.primary)
+                            }
+                        }
+                    } header: {
+                        Text(AppStrings.AdvanceEditor.penaltyContractTitle)
+                    }
+                }
+
                 if let previewText {
                     Section {
                         Label(previewText, systemImage: "sparkles")
@@ -1176,6 +1501,24 @@ struct AdvanceEditorView: View {
                 }
             }
         }
+    }
+
+    private var penaltyEstimate: AdvancePenaltyEstimate? {
+        let value = parseDecimal(amount)
+        guard value > 0 else { return nil }
+        return AdvancePenaltyEvaluator.estimatePartialAdvanceFee(
+            amount: value,
+            currency: currency,
+            eventDateISO: ISODateSupport.string(from: date),
+            input: input
+        )
+    }
+
+    private var partialPenaltyStatus: AdvancePenaltyStatus? {
+        AdvancePenaltyEvaluator.partialAdvanceStatus(
+            eventDateISO: ISODateSupport.string(from: date),
+            input: input
+        )
     }
 
     private var previewText: String? {
@@ -1237,8 +1580,7 @@ struct AdvanceEditorView: View {
     }
 
     private func parseDecimal(_ raw: String) -> Double {
-        let normalized = raw.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
-        return Double(normalized) ?? 0
+        AppFormatting.decimalInput(raw)
     }
 }
 

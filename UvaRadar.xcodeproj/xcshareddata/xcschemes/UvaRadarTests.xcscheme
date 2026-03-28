@@ -18,7 +18,7 @@
                BlueprintIdentifier = "3D7E14102F67507800A89074"
                BuildableName = "UvaRadar.app"
                BlueprintName = "UvaRadar"
-               ReferencedContainer = "container:">
+               ReferencedContainer = "container:UvaRadar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -32,7 +32,7 @@
                BlueprintIdentifier = "A1B2C3D42F70000100000006"
                BuildableName = "UvaRadarTests.xctest"
                BlueprintName = "UvaRadarTests"
-               ReferencedContainer = "container:">
+               ReferencedContainer = "container:UvaRadar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -49,7 +49,7 @@
             BlueprintIdentifier = "3D7E14102F67507800A89074"
             BuildableName = "UvaRadar.app"
             BlueprintName = "UvaRadar"
-            ReferencedContainer = "container:">
+            ReferencedContainer = "container:UvaRadar.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -60,7 +60,7 @@
                BlueprintIdentifier = "A1B2C3D42F70000100000006"
                BuildableName = "UvaRadarTests.xctest"
                BlueprintName = "UvaRadarTests"
-               ReferencedContainer = "container:">
+               ReferencedContainer = "container:UvaRadar.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,7 +82,7 @@
             BlueprintIdentifier = "3D7E14102F67507800A89074"
             BuildableName = "UvaRadar.app"
             BlueprintName = "UvaRadar"
-            ReferencedContainer = "container:">
+            ReferencedContainer = "container:UvaRadar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -99,7 +99,7 @@
             BlueprintIdentifier = "3D7E14102F67507800A89074"
             BuildableName = "UvaRadar.app"
             BlueprintName = "UvaRadar"
-            ReferencedContainer = "container:">
+            ReferencedContainer = "container:UvaRadar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

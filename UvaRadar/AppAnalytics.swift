@@ -28,7 +28,7 @@ final class AppAnalytics: AnalyticsTracking {
 
     private let amplitude: Amplitude
 
-    private init() {
+    private init() { 
         let analyticsConfig = AnalyticsConfig(
             autocapture: [.sessions, .appLifecycles, .screenViews]
         )

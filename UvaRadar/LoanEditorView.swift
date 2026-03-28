@@ -14,6 +14,11 @@ struct LoanEditorView: View {
     @State private var originalCurrency: LoanCurrency
     @State private var insuranceIncluded: Bool
     @State private var insuranceUVA: String
+    @State private var hasAdvancePenalty: Bool
+    @State private var penaltyRatePercent: String
+    @State private var penaltyScope: AdvancePenaltyScope
+    @State private var penaltyWindowValue: String
+    @State private var penaltyWindowUnit: AdvancePenaltyWindowUnit
     @State private var validationMessage: String?
 
     init(existingInput: CaseInput?, series: SeriesBundle, onSave: @escaping (CaseInput) -> Void, onCancel: @escaping () -> Void) {
@@ -33,6 +38,11 @@ struct LoanEditorView: View {
         _originalCurrency = State(initialValue: existingInput?.originalCurrency ?? .uva)
         _insuranceIncluded = State(initialValue: existingInput?.insuranceIncluded ?? false)
         _insuranceUVA = State(initialValue: existingInput.map { AppFormatting.number($0.insuranceUVA, decimals: 2) } ?? "")
+        _hasAdvancePenalty = State(initialValue: existingInput?.advancePenalty != nil)
+        _penaltyRatePercent = State(initialValue: existingInput?.advancePenalty.map { AppFormatting.number($0.rate * 100, decimals: 2) } ?? "")
+        _penaltyScope = State(initialValue: existingInput?.advancePenalty?.scope ?? .partial)
+        _penaltyWindowValue = State(initialValue: existingInput?.advancePenalty.map { String($0.windowValue) } ?? "")
+        _penaltyWindowUnit = State(initialValue: existingInput?.advancePenalty?.windowUnit ?? .installments)
     }
 
     private var formTitle: String {
@@ -95,6 +105,7 @@ struct LoanEditorView: View {
             loanDataCard
             financeCard
             insuranceCard
+            penaltyCard
 
             if let validationMessage {
                 MessageCard(text: validationMessage, accent: .red, symbol: "exclamationmark.triangle.fill")
@@ -243,6 +254,108 @@ struct LoanEditorView: View {
         }
     }
 
+    private var penaltyCard: some View {
+        CardContainer {
+            VStack(alignment: .leading, spacing: 18) {
+                SectionHeader(
+                    title: AppStrings.LoanEditor.penaltySectionTitle,
+                    subtitle: AppStrings.LoanEditor.penaltySectionSubtitle,
+                    symbol: "calendar.badge.clock",
+                    tint: .secondary
+                )
+
+                Toggle(isOn: $hasAdvancePenalty) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(AppStrings.LoanEditor.includePenalty)
+                            .font(.subheadline.weight(.semibold))
+                        Text(AppStrings.LoanEditor.includePenaltySubtitle)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+
+                if hasAdvancePenalty {
+                    EditorField(
+                        title: AppStrings.LoanEditor.penaltyRateTitle,
+                        caption: AppStrings.LoanEditor.penaltyRateCaption,
+                        symbol: "percent",
+                        text: $penaltyRatePercent,
+                        keyboardType: .decimalPad,
+                        trailingText: "%"
+                    )
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(AppStrings.LoanEditor.penaltyScopeTitle)
+                            .font(.subheadline.weight(.semibold))
+                        Picker(AppStrings.LoanEditor.penaltyScopeTitle, selection: $penaltyScope) {
+                            ForEach(AdvancePenaltyScope.allCases) { scope in
+                                Text(scope.title).tag(scope)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(AppStrings.LoanEditor.penaltyWindowTitle)
+                            .font(.subheadline.weight(.semibold))
+
+                        HStack(spacing: 12) {
+                            EditorField(
+                                title: AppStrings.LoanEditor.penaltyWindowValueTitle,
+                                caption: "",
+                                symbol: "number",
+                                text: $penaltyWindowValue,
+                                keyboardType: .numberPad,
+                                trailingText: penaltyWindowUnit.title
+                            )
+                            .frame(maxWidth: 130)
+
+                            Picker(AppStrings.LoanEditor.penaltyWindowTitle, selection: $penaltyWindowUnit) {
+                                ForEach(AdvancePenaltyWindowUnit.allCases) { unit in
+                                    Text(unit.title).tag(unit)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
+
+                        Text(AppStrings.LoanEditor.penaltyWindowCaption)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if let penaltySummaryText {
+                        MessageCard(text: penaltySummaryText, accent: .orange, symbol: "doc.text.magnifyingglass")
+                    }
+                }
+            }
+        }
+    }
+
+    private var penaltySummaryText: String? {
+        guard hasAdvancePenalty,
+              let rule = currentAdvancePenaltyRule
+        else {
+            return nil
+        }
+
+        return AdvancePenaltyEvaluator.summaryText(for: rule)
+    }
+
+    private var currentAdvancePenaltyRule: AdvancePenaltyRule? {
+        let rate = parseDecimal(penaltyRatePercent) / 100
+        let windowValue = Int(penaltyWindowValue) ?? 0
+
+        guard rate > 0, windowValue > 0 else { return nil }
+
+        return AdvancePenaltyRule(
+            rate: rate,
+            scope: penaltyScope,
+            windowValue: windowValue,
+            windowUnit: penaltyWindowUnit
+        )
+    }
+
     private var primaryAction: some View {
         Button(existingInput == nil ? AppStrings.LoanEditor.saveLoan : AppStrings.LoanEditor.updateLoan) {
             save()
@@ -283,6 +396,8 @@ struct LoanEditorView: View {
         let tna = parseDecimal(tnaPercent) / 100
         let amount = parseDecimal(originalAmount)
         let insuranceAmount = parseDecimal(insuranceUVA)
+        let penaltyRate = parseDecimal(penaltyRatePercent) / 100
+        let penaltyWindow = Int(penaltyWindowValue) ?? 0
 
         guard months >= 1, months <= 600 else {
             validationMessage = AppStrings.LoanEditor.invalidTerm
@@ -304,6 +419,21 @@ struct LoanEditorView: View {
             AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "insurance_uva"])
             return
         }
+        if hasAdvancePenalty, !(penaltyRate > 0 && penaltyRate <= 1) {
+            validationMessage = AppStrings.LoanEditor.invalidPenaltyRate
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "advance_penalty_rate"])
+            return
+        }
+        if hasAdvancePenalty, penaltyWindow < 1 {
+            validationMessage = AppStrings.LoanEditor.invalidPenaltyWindow
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "advance_penalty_window"])
+            return
+        }
+        if hasAdvancePenalty, penaltyWindowUnit == .installments, penaltyWindow > months {
+            validationMessage = AppStrings.LoanEditor.invalidPenaltyWindow
+            AppAnalytics.shared.track(.loanFormValidationFailed, properties: ["field": "advance_penalty_window"])
+            return
+        }
 
         let payload = CaseInput(
             grantDate: ISODateSupport.string(from: grantDate),
@@ -313,15 +443,20 @@ struct LoanEditorView: View {
             originalAmount: amount,
             originalCurrency: originalCurrency,
             insuranceIncluded: insuranceIncluded,
-            insuranceUVA: insuranceIncluded ? insuranceAmount : 0
+            insuranceUVA: insuranceIncluded ? insuranceAmount : 0,
+            advancePenalty: hasAdvancePenalty ? AdvancePenaltyRule(
+                rate: penaltyRate,
+                scope: penaltyScope,
+                windowValue: penaltyWindow,
+                windowUnit: penaltyWindowUnit
+            ) : nil
         )
 
         onSave(payload)
     }
 
     private func parseDecimal(_ raw: String) -> Double {
-        let normalized = raw.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
-        return Double(normalized) ?? 0
+        AppFormatting.decimalInput(raw)
     }
 }
 

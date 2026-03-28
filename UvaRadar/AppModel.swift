@@ -37,9 +37,9 @@ final class AppModel {
         series != nil
     }
 
-    var debtCostEstimate: DebtCostEstimate? {
+    var convenienceEstimate: ConvenienceEstimate? {
         guard let input, let series else { return nil }
-        return DebtCostEstimator.estimate(series: series, input: input)
+        return ConvenienceEstimator.estimate(series: series, input: input)
     }
 
     func startIfNeeded() async {

@@ -30,6 +30,49 @@ enum AdvanceMode: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum AdvancePenaltyScope: String, Codable, CaseIterable, Identifiable {
+    case partial = "PARTIAL"
+    case total = "TOTAL"
+    case both = "BOTH"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .partial: return AppStrings.LoanEditor.penaltyScopePartial
+        case .total: return AppStrings.LoanEditor.penaltyScopeTotal
+        case .both: return AppStrings.LoanEditor.penaltyScopeBoth
+        }
+    }
+
+    var coversPartialPrepayment: Bool {
+        self == .partial || self == .both
+    }
+}
+
+enum AdvancePenaltyWindowUnit: String, Codable, CaseIterable, Identifiable {
+    case installments = "INSTALLMENTS"
+    case months = "MONTHS"
+    case years = "YEARS"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .installments: return AppStrings.LoanEditor.penaltyWindowInstallments
+        case .months: return AppStrings.LoanEditor.penaltyWindowMonths
+        case .years: return AppStrings.LoanEditor.penaltyWindowYears
+        }
+    }
+}
+
+struct AdvancePenaltyRule: Codable, Equatable {
+    var rate: Double
+    var scope: AdvancePenaltyScope
+    var windowValue: Int
+    var windowUnit: AdvancePenaltyWindowUnit
+}
+
 struct CaseInput: Codable, Equatable {
     var grantDate: String?
     var firstDueDate: String
@@ -39,6 +82,7 @@ struct CaseInput: Codable, Equatable {
     var originalCurrency: LoanCurrency
     var insuranceIncluded: Bool = false
     var insuranceUVA: Double = 0
+    var advancePenalty: AdvancePenaltyRule? = nil
 }
 
 struct SeriesManifest: Codable, Equatable {

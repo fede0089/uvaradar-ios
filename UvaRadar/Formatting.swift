@@ -32,6 +32,11 @@ enum AppFormatting {
         formatter.maximumFractionDigits = decimals
         return formatter.string(from: NSNumber(value: value)) ?? "\(value * 100)%"
     }
+
+    static func decimalInput(_ raw: String) -> Double {
+        let normalized = raw.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
+        return Double(normalized) ?? 0
+    }
 }
 
 func amountInDisplayCurrency(uvaAmount: Double, currency: LoanCurrency, uvaValue: Double, usdValue: Double) -> Double {
@@ -43,5 +48,18 @@ func amountInDisplayCurrency(uvaAmount: Double, currency: LoanCurrency, uvaValue
     case .usd:
         guard usdValue != 0 else { return 0 }
         return (uvaAmount * uvaValue) / usdValue
+    }
+}
+
+func amountInUVA(displayAmount: Double, currency: LoanCurrency, uvaValue: Double, usdValue: Double) -> Double {
+    switch currency {
+    case .uva:
+        return displayAmount
+    case .ars:
+        guard uvaValue != 0 else { return 0 }
+        return displayAmount / uvaValue
+    case .usd:
+        guard uvaValue != 0 else { return 0 }
+        return (displayAmount * usdValue) / uvaValue
     }
 }
