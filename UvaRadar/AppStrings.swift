@@ -389,8 +389,8 @@ enum AppStrings {
 
         static func convenienceExampleBreakeven(threshold: String) -> String {
             localized(
-                "Resultado idéntico. Porque \(threshold) TNA ÷ 12 = la tasa mensual exacta de tu deuda.\nEste umbral aplica igual a 1 mes que a 12: si tu inversión supera el \(threshold) TNA, siempre conviene más.",
-                "Identical outcome. Because \(threshold) TNA ÷ 12 = the exact monthly rate of your debt.\nThis threshold applies at any horizon — 1 month or 12: if your investment exceeds \(threshold) TNA, it always wins."
+                "Resultado idéntico. Porque \(threshold) TNA ÷ 12 = la tasa mensual exacta de tu deuda.\nEste umbral aplica a cualquier horizonte mientras la inflación UVA sea estable: si tu inversión supera el \(threshold) TNA, conviene invertir.",
+                "Identical outcome. Because \(threshold) TNA ÷ 12 = the exact monthly rate of your debt.\nThis threshold applies at any horizon while UVA inflation is stable: if your investment exceeds \(threshold) TNA, investing wins."
             )
         }
 

@@ -36,8 +36,8 @@ struct ConvenienceEstimate: Equatable {
     let anchorUVAValue: Double
     let anchorUSDValue: Double
     let uvaMonthlyGrowthEstimate: Double
-    let loanMonthlyRealRate: Double
-    let loanAnnualRealRate: Double
+    let loanMonthlyNominalRate: Double
+    let loanAnnualNominalCompounded: Double
     let loanAnnualNominalEquivalent: Double
     let loanAnnualEffectiveEquivalent: Double
     let methodNote: String
@@ -81,7 +81,7 @@ struct ConvenienceEstimate: Equatable {
             : amountUVA
 
         let futureInvestmentValueUVA = amountUVA * pow(1 + investmentMonthlyRealRate, Double(horizonMonths))
-        let avoidedFutureDebtUVA = effectivePrepaymentUVA * pow(1 + loanMonthlyRealRate, Double(horizonMonths))
+        let avoidedFutureDebtUVA = effectivePrepaymentUVA * pow(1 + loanMonthlyNominalRate, Double(horizonMonths))
         let deltaUVA = futureInvestmentValueUVA - avoidedFutureDebtUVA
         let deltaToday = amountInDisplayCurrency(
             uvaAmount: deltaUVA,
@@ -124,7 +124,7 @@ struct ConvenienceEstimate: Equatable {
         let effectivePrepayFactor = penaltyRate.map { 1.0 - $0 } ?? 1.0
         let T = Double(remainingMonths)
         let investFuture = pow(1 + investMonthlyReal, T)
-        let prepayFuture = effectivePrepayFactor * pow(1 + loanMonthlyRealRate, T)
+        let prepayFuture = effectivePrepayFactor * pow(1 + loanMonthlyNominalRate, T)
 
         return ConvenienceEstimator.decision(for: investFuture - prepayFuture)
     }
@@ -167,15 +167,15 @@ enum ConvenienceEstimator {
         }
 
         let uvaMonthlyGrowthEstimate = pow(totalGrowth, 1 / elapsedMonths) - 1
-        let loanMonthlyRealRate = LoanMath.monthlyRate(fromTNA: input.tna)
-        let loanAnnualRealRate = pow(1 + loanMonthlyRealRate, 12) - 1
-        let loanMonthlyNominalEquivalent = (1 + loanMonthlyRealRate) * (1 + uvaMonthlyGrowthEstimate) - 1
+        let loanMonthlyNominalRate = LoanMath.monthlyRate(fromTNA: input.tna)
+        let loanAnnualNominalCompounded = pow(1 + loanMonthlyNominalRate, 12) - 1
+        let loanMonthlyNominalEquivalent = (1 + loanMonthlyNominalRate) * (1 + uvaMonthlyGrowthEstimate) - 1
         let loanAnnualNominalEquivalent = loanMonthlyNominalEquivalent * 12
         let loanAnnualEffectiveEquivalent = pow(1 + loanMonthlyNominalEquivalent, 12) - 1
 
         guard uvaMonthlyGrowthEstimate.isFinite,
-              loanMonthlyRealRate.isFinite,
-              loanAnnualRealRate.isFinite,
+              loanMonthlyNominalRate.isFinite,
+              loanAnnualNominalCompounded.isFinite,
               loanMonthlyNominalEquivalent.isFinite,
               loanAnnualNominalEquivalent.isFinite,
               loanAnnualEffectiveEquivalent.isFinite
@@ -189,8 +189,8 @@ enum ConvenienceEstimator {
             anchorUVAValue: anchorUVA,
             anchorUSDValue: anchorUSD,
             uvaMonthlyGrowthEstimate: uvaMonthlyGrowthEstimate,
-            loanMonthlyRealRate: loanMonthlyRealRate,
-            loanAnnualRealRate: loanAnnualRealRate,
+            loanMonthlyNominalRate: loanMonthlyNominalRate,
+            loanAnnualNominalCompounded: loanAnnualNominalCompounded,
             loanAnnualNominalEquivalent: loanAnnualNominalEquivalent,
             loanAnnualEffectiveEquivalent: loanAnnualEffectiveEquivalent,
             methodNote: AppStrings.Dashboard.convenienceMethodNote
@@ -214,8 +214,8 @@ enum ConvenienceEstimator {
             anchorUVAValue: 0,
             anchorUSDValue: 0,
             uvaMonthlyGrowthEstimate: 0,
-            loanMonthlyRealRate: 0,
-            loanAnnualRealRate: 0,
+            loanMonthlyNominalRate: 0,
+            loanAnnualNominalCompounded: 0,
             loanAnnualNominalEquivalent: 0,
             loanAnnualEffectiveEquivalent: 0,
             methodNote: AppStrings.Dashboard.convenienceMethodNote

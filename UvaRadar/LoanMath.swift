@@ -101,7 +101,7 @@ enum LoanCalculator {
 
         let eventsWithEffectiveIndex = events
             .map { event -> (event: CapitalAdvanceEvent, effectiveInstallment: Int) in
-                let effective = (dueDates.firstIndex(where: { $0 >= event.dateISO }) ?? 0) + 1
+                let effective = (dueDates.firstIndex(where: { $0 >= event.dateISO }) ?? (dueDates.count - 1)) + 1
                 return (event, max(1, effective))
             }
             .sorted { lhs, rhs in
@@ -244,7 +244,7 @@ enum LoanCalculator {
             remainingMonths: remainingMonths,
             cutoffDate: cutoffISO,
             cutoffUVA: cutoffUVA,
-            nextInstallmentARS: principalInstallment * cutoffUVA,
+            nextInstallmentARS: remainingMonths > 0 ? principalInstallment * cutoffUVA : 0,
             totals: totals,
             history: history
         )

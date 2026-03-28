@@ -290,4 +290,31 @@ final class AdvancePenaltyTests: XCTestCase {
         XCTAssertEqual(estimate!.totalAmount, 1_040, accuracy: 0.0001)
         XCTAssertEqual(estimate!.limitText, "sin vencimiento")
     }
+
+    func testPartialAdvanceStatus_WhenEventDateIsAfterMaturity_InstallmentWindowDoesNotApply() {
+        // 12-month loan, penalty for first 6 installments.
+        // An event after all due dates must NOT be treated as installment 1.
+        let input = CaseInput(
+            grantDate: "2024-01-15",
+            firstDueDate: "2024-02-01",
+            totalMonths: 12,
+            tna: 0.1,
+            originalAmount: 100_000,
+            originalCurrency: .ars,
+            advancePenalty: AdvancePenaltyRule(
+                rate: 0.03,
+                scope: .partial,
+                windowValue: 6,
+                windowUnit: .installments
+            )
+        )
+
+        let status = AdvancePenaltyEvaluator.partialAdvanceStatus(
+            eventDateISO: "2025-06-01", // well after the loan's last due date (2025-01-01)
+            input: input
+        )
+
+        // Post-maturity event: effectiveInstallment = totalMonths (12) > windowValue (6) → no penalty
+        XCTAssertEqual(status?.applies, false)
+    }
 }

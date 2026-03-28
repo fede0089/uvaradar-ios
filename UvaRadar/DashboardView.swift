@@ -716,9 +716,11 @@ private struct ConvenienceMethodSheet: View {
     let penaltyNotice: DashboardPenaltyNotice?
 
     private var combinedMonthly: Double {
-        (1 + estimate.loanMonthlyRealRate) * (1 + estimate.uvaMonthlyGrowthEstimate) - 1
+        (1 + estimate.loanMonthlyNominalRate) * (1 + estimate.uvaMonthlyGrowthEstimate) - 1
     }
     private var originalThresholdRate: Double { estimate.loanAnnualNominalEquivalent }
+    // Linear approximation: exact adjustment is slightly smaller for large penalty rates,
+    // but the error is immaterial for typical Argentine bank commissions (1–5%).
     private var effectiveThresholdRate: Double {
         penaltyNotice.map { originalThresholdRate * (1 - $0.penaltyRate) } ?? originalThresholdRate
     }
@@ -735,7 +737,7 @@ private struct ConvenienceMethodSheet: View {
     private var exampleCommissionAmount: Double {
         exampleAmount - effectiveExampleAmount
     }
-    private var exampleInterest: Double { effectiveExampleAmount * estimate.loanMonthlyRealRate }
+    private var exampleInterest: Double { effectiveExampleAmount * estimate.loanMonthlyNominalRate }
     private var exampleInflation: Double { effectiveExampleAmount * estimate.uvaMonthlyGrowthEstimate }
     private var exampleTotal: Double { effectiveExampleAmount * combinedMonthly }
     private var exampleTotalStr: String { "~$" + AppFormatting.number(exampleTotal, decimals: 0) }
@@ -830,7 +832,7 @@ private struct ConvenienceMethodSheet: View {
     }
 
     private var whereFromSection: some View {
-        let tna = AppFormatting.percent(estimate.loanMonthlyRealRate * 12, decimals: 1)
+        let tna = AppFormatting.percent(estimate.loanMonthlyNominalRate * 12, decimals: 1)
         let uvaMonthly = AppFormatting.percent(estimate.uvaMonthlyGrowthEstimate, decimals: 2)
         let effectiveCapitalStr = "~$" + AppFormatting.number(effectiveExampleAmount, decimals: 0)
 
@@ -916,8 +918,8 @@ private struct ConvenienceMethodSheet: View {
     }
 
     private var howCalculatedSection: some View {
-        let tna = AppFormatting.percent(estimate.loanMonthlyRealRate * 12, decimals: 1)
-        let monthly = AppFormatting.percent(estimate.loanMonthlyRealRate, decimals: 2)
+        let tna = AppFormatting.percent(estimate.loanMonthlyNominalRate * 12, decimals: 1)
+        let monthly = AppFormatting.percent(estimate.loanMonthlyNominalRate, decimals: 2)
         let uvaMonthly = AppFormatting.percent(estimate.uvaMonthlyGrowthEstimate, decimals: 2)
         let teaStr = AppFormatting.percent(estimate.loanAnnualEffectiveEquivalent, decimals: 1)
 

@@ -24,9 +24,9 @@ final class ConvenienceEstimatorTests: XCTestCase {
 
         XCTAssertEqual(lowerGrowth.status, .ok)
         XCTAssertEqual(higherGrowth.status, .ok)
-        XCTAssertEqual(lowerGrowth.loanMonthlyRealRate, 0.02, accuracy: 0.0001)
-        XCTAssertEqual(higherGrowth.loanMonthlyRealRate, 0.02, accuracy: 0.0001)
-        XCTAssertEqual(lowerGrowth.loanAnnualRealRate, higherGrowth.loanAnnualRealRate, accuracy: 0.0001)
+        XCTAssertEqual(lowerGrowth.loanMonthlyNominalRate, 0.02, accuracy: 0.0001)
+        XCTAssertEqual(higherGrowth.loanMonthlyNominalRate, 0.02, accuracy: 0.0001)
+        XCTAssertEqual(lowerGrowth.loanAnnualNominalCompounded, higherGrowth.loanAnnualNominalCompounded, accuracy: 0.0001)
     }
 
     func testSimulation_RecentUVAOnlyAffectsInvestmentConversion() {

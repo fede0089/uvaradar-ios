@@ -134,7 +134,7 @@ enum AdvancePenaltyEvaluator {
 
     static func effectiveInstallment(for eventDateISO: String, input: CaseInput) -> Int {
         let dueDates = generateDueDates(firstDueISO: input.firstDueDate, count: input.totalMonths)
-        let effective = (dueDates.firstIndex(where: { $0 >= eventDateISO }) ?? 0) + 1
+        let effective = (dueDates.firstIndex(where: { $0 >= eventDateISO }) ?? (dueDates.count - 1)) + 1
         return max(1, effective)
     }
 
